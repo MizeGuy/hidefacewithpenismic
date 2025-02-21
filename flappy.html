@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Flappy Bird with Coins (Pine Tree Obstacles, Swipe Gif, & Kolkar)</title>
+  <style>
+    /* RESET & LAYOUT */
+    * {
+      margin: 0; 
+      padding: 0;
+      box-sizing: border-box;
+    }
+    html, body {
+      width: 100%;
+      height: 100%;
+      /* Replacing sky-blue background with brill.png from main folder */
+      background: url('main/brill.png') no-repeat center center;
+      background-size: cover;
+      overflow: hidden;
+    }
+    #Canvas {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Green underlined, bold text at the top: "Made By TheMizeGuy" */
+    #Header {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      color: rgb(255, 0, 0);
+      font-weight: bold;
+      text-decoration: underline;
+      font-size: 1.5vw;
+      z-index: 9999;
+    }
+
+    /*
+      PLAYER – 456×256, using "main/player.avif"
+    */
+    #Birdy {
+      position: absolute;
+      top: 40%;
+      left: 20%;
+      width: 456px;
+      height: 256px;
+      background-image: url('main/player.avif');
+      background-size: cover;
+      background-position: center;
+      z-index: 150;
+    }
+    .FallenBirdy {
+      transform: rotate(90deg);
+    }
+
+    /*
+      COINS (boostlogo.png) – 180×135
+    */
+    .Coin {
+      position: absolute;
+      width: 294px;
+      height: 225px;
+      background-image: url('main/boostlogo.png');
+      background-repeat: no-repeat;
+      background-size: cover;
+      left: 100%;
+      z-index: 140;
+      animation-timing-function: linear;
+    }
+
+    /* PINE TREE OBSTACLES (5% width, 15% less frequent) */
+    .Pipe {
+      position: absolute;
+      top: 0;
+      left: 100%;
+      width: 5%;
+      /* Stylized pine tree color:
+         top 90% green, bottom 10% brown trunk
+      */
+      background:
+        linear-gradient(to bottom, #228B22 0%, #228B22 90%, #8B4513 90%, #8B4513 100%);
+      border: 2px solid #444;
+      border-radius: 6px;
+      animation-timing-function: linear;
+    }
+    .TopPipe {
+      transform: rotate(180deg);
+    }
+
+    @keyframes PipeMovement {
+      from { left: 100%; }
+      to   { left: -25%; }
+    }
+    @keyframes CoinMovement {
+      from { left: 100%; }
+      to   { left: -10%; }
+    }
+    .paused {
+      animation-play-state: paused;
+    }
+
+    /* SCORE & INSTRUCTIONS */
+    #InstructionBox {
+      position: absolute;
+      left: 50%;
+      top: 15%;
+      display: none;
+    }
+    #InstructionBox div {
+      position: relative;
+      left: -50%;
+      z-index: 150;
+      color: white;
+      font-size: 2vw;
+      background: rgba(0,0,0,0.3);
+      padding: 10px 20px;
+      border-radius: 8px;
+    }
+    .noSelect {
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    #CurrentScoreCard {
+      position: relative;
+      left: -50%;
+      margin-top: -700%;
+      text-align: center;
+      font-size: 4vw;
+      color: white;
+      text-shadow:
+        -2px -2px 0 #000,
+         2px -2px 0 #000,
+        -2px  2px 0 #000,
+         2px  2px 0 #000;
+      z-index: 50;
+    }
+    #LostScoreScreen {
+      position: relative;
+      left: -50%;
+      margin-top: -70%;
+      padding: 10px 15px;
+      background: #ded895;
+      border-radius: 4%;
+      border: 2px solid black;
+      text-align: center;
+      display: none;
+      font-size: 2vw;
+      color: white;
+      text-shadow:
+        -2px -2px 0 #000,
+         2px -2px 0 #000,
+        -2px  2px 0 #000,
+         2px  2px 0 #000;
+      z-index: 150;
+    }
+    #CurrentScore, #FinalScore, #BestScore {
+      font-weight: bold;
+    }
+
+    /* Additional text under reset button */
+    #ExtraText {
+      margin-top: 10px;
+      font-size: 1.2em;
+      color: #222;
+    }
+    #ExtraText strong {
+      display: block;
+      margin-bottom: 5px;
+    }
+    #ExtraText span {
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    /* PAUSE BUTTON (top right) */
+    #PauseButton {
+      position: absolute;
+      top: 2%;
+      right: 1%;
+      width: 3%;
+      background: orange;
+      border-radius: 5px;
+      font-size: 2.6vw;
+      text-align: center;
+      z-index: 50;
+      cursor: pointer;
+      padding: 0.8% 0;
+    }
+
+    /* DEBUG INFO (OPTIONAL) */
+    #DebugInfo {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 150px;
+      height: 250px;
+      z-index: 25;
+      background: gray;
+      opacity: 0.7;
+      color: white;
+      display: none;
+      padding: 4px;
+    }
+
+    /* RESET BUTTON */
+    button {
+      font-size: 1em;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 12px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #f0f0f0;
+    }
+
+    /* CHASER – 4x bigger, starts left:-10%, 25% slower */
+    #Chaser {
+      position: absolute;
+      top: 40%;
+      left: -10%;
+      width: 800px;
+      height: 800px;
+      background-image: url('main/chaser.jpg');
+      background-size: cover;
+      background-position: center;
+      z-index: 100;
+      outline: 2px solid purple;
+    }
+
+    /* SWIPE GIF in top middle, 2.5s display on coin pickup */
+    #SwipeGif {
+      position: absolute;
+      top: 0%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 2000px;
+      height: 1000px;
+      background-image: url('main/swipe.gif');
+      background-size: cover;
+      display: none;
+      z-index: 999;
+    }
+
+    /*
+      NEW: Kolkar obstacle – spawns every 15-20s. 
+      Moves from right to left. 
+      Red box around it for hitbox debug. 
+    */
+    .Kolkar {
+      position: absolute;
+      top: 40%; /* We'll randomize the exact top in code */
+      left: 100%;
+      width: 800px; /* or some dimension to match the sprite aspect? */
+      height: 700px;
+      background-image: url('main/kolkar.png');
+      background-size: cover;
+      background-position: center;
+      z-index: 160;
+      animation-timing-function: linear; /* We'll define KolkarMovement in JS */
+    }
+
+    @keyframes KolkarMovement {
+      from { left: 100%; }
+      to   { left: -15%; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header text -->
+  <div id="Header">Made By TheMizeGuy</div>
+
+  <div id="Canvas">
+    <!-- INSTRUCTIONS -->
+    <div id="InstructionBox">
+      <div class="noSelect">
+        Click to Fly<br>
+        Space Bar to Reset<br>
+        "P" to Pause
+      </div>
+    </div>
+
+    <!-- CURRENT SCORE -->
+    <div style="position: absolute; left: 50%; top: 50%;">
+      <div id="CurrentScoreCard" class="noSelect">
+        <span id="CurrentScore">0</span>
+      </div>
+    </div>
+
+    <!-- GAME OVER SCREEN -->
+    <div style="position: absolute; left: 50%; top: 50%;">
+      <div id="LostScoreScreen" class="noSelect">
+        <span>Score</span><br>
+        <span id="FinalScore">0</span><br>
+        <span>Best</span><br>
+        <span id="BestScore">0</span>
+        <br><br>
+        <button id="ResetButton" type="button">Reset</button>
+
+        <!-- Additional info below reset button -->
+        <div id="ExtraText">
+          <strong>FlappyCuck</strong>
+          <span>Left click to jump</span>
+          <span>Collect that G2G delivery to slow down the ROACH!</span>
+          <span>Special surprise at 50 points!</span>
+        </div>
+      </div>
+    </div>
+
+    <div id="DebugInfo" class="noSelect"></div>
+
+    <!-- PLAYER (Bird) -->
+    <div id="Birdy"></div>
+
+    <!-- PAUSE BUTTON -->
+    <div id="PauseButton" class="noSelect">||</div>
+
+    <!-- CHASER -->
+    <div id="Chaser"></div>
+
+    <!-- SWIPE GIF -->
+    <div id="SwipeGif"></div>
+  </div>
+
+  <!-- LOCAL jQuery from main folder -->
+  <script src="main/jquery.min.js"></script>
+
+  <!-- FULL GAME SCRIPT -->
+  <script>
+  $(function(){
+    /* CORE VARS */
+    var canvasObject       = $('#Canvas');
+    var gameLoopIntervalID = 0;
+    var Paused             = true;
+    var Lost               = false;
+    var CurrentScore       = 0;
+    var gameLoopCounter    = 0;
+
+    /* Speed for newly spawned pipes/coins */
+    var pipeDuration = 15;
+
+    /* CHASER Data */
+    var chaseX = -10;
+    var chaseSpeed = 0.017;
+    var chaseTop = 40;
+    var chaseTrackFactor = 0.05;
+
+    /* AUDIO & MUTE LOGIC */
+    var isMuted       = false;
+    var flapCount     = 0;   // track flaps for oh.mp3
+
+    // oh.mp3 (75% quieter => volume=0.25)
+    var ohSound = new Audio('main/oh.mp3');
+    ohSound.volume = 0.25;
+
+    // jammer.mp3 (50% quieter => volume=0.5), loops, fade in over 10s
+    var jammerSound = new Audio('main/jammer.mp3');
+    jammerSound.loop = true;
+    jammerSound.volume = 0.35;
+    var jammerFadeInterval = null;
+
+    // nowaybro.mp3 for losing
+    var nowaybroSound = new Audio('main/nowaybro.mp3');
+    nowaybroSound.volume = 0.6;
+
+    // LightningShieldImpact.ogg for Kolkar charge (first 2 seconds at 0.4 volume)
+    var impactSound = new Audio('main/LightningShieldImpact.ogg');
+    impactSound.volume = 0.4;
+
+    // BIRD (PLAYER)
+    var Birdy = new (function(){
+      var selectorObject  = $('#Birdy');
+      var jumping         = false;
+      var gravVeloc       = 0;
+      var gravAccel       = 0.3;
+      var terminalVelocity= 5;
+      var Angle           = 0;
+
+      this.Reset = function(){
+        jumping   = false;
+        gravVeloc = 0;
+        Angle     = 0;
+        flapCount = 0; // reset flap count
+        selectorObject.stop().rotate(0).css({ top:'40%', left:'20%' });
+      };
+
+      this.fall = function(){
+        if(!jumping){
+          selectorObject.stop().animate({top:'+='+gravVeloc+'%'}, 30, 'linear');
+          gravVeloc += gravAccel;
+          if(gravVeloc>terminalVelocity){ gravVeloc=terminalVelocity; }
+          var newAngle = Angle + 15*Math.pow((gravVeloc/terminalVelocity),2);
+          adjustAngle(Math.min(newAngle,90));
+        } else {
+          gravVeloc=0;
+        }
+      };
+      this.jump = function(){
+        if(Paused) return;
+        jumping = true;
+        flapCount++;
+
+        // oh.mp3 every 4 flaps if not muted
+        if(flapCount % 4 === 0 && !isMuted){
+          ohSound.currentTime = 0; 
+          ohSound.play();
+        }
+
+        adjustAngle(-45);
+        selectorObject.stop().animate({top:'-=9%'},100,'linear',function(){
+          jumping=false; 
+          Birdy.fall();
+        });
+      };
+      function adjustAngle(angle){
+        selectorObject.rotate(angle);
+        Angle = angle;
+      }
+      this.BirdyObject = selectorObject;
+    })();
+
+    // START/PAUSE/END/RESET
+    function startGame() {
+      if(Lost) return;
+      gameLoopIntervalID = setInterval(gameLoop, 30);
+      $('.Pipe, .Coin, .Kolkar').removeClass('paused');
+      $('#PauseButton').text('||');
+      Paused = false;
+    }
+    function pauseGame() {
+      clearInterval(gameLoopIntervalID);
+      $('.Pipe, .Coin, .Kolkar').addClass('paused');
+      $('#PauseButton').text('▶');
+      Paused = true;
+    }
+    function togglePause() {
+      if(!Paused) pauseGame(); else startGame();
+    }
+    function endGame() {
+      Lost = true;
+      pauseGame();
+      var cookieScore = parseInt(getCookie('HighScore') || 0, 10);
+      var highScore   = Math.max(CurrentScore, cookieScore);
+      setCookie('HighScore', highScore, 9999);
+
+      Birdy.BirdyObject.animate({top:'90%'}, 1500, 'linear');
+      $('#FinalScore').text(CurrentScore);
+      $('#BestScore').text(highScore);
+      $('#LostScoreScreen').slideDown();
+
+      // Stop jammer fade & sound
+      clearInterval(jammerFadeInterval);
+      jammerFadeInterval = null;
+      jammerSound.pause();
+      jammerSound.currentTime = 0;
+
+      // Play nowaybro when losing
+      if(!isMuted){
+        nowaybroSound.currentTime = 0;
+        nowaybroSound.play();
+      }
+    }
+    function resetGame() {
+      pauseGame();
+      $('.Pipe').remove();
+      $('.Coin').remove();
+      $('.Kolkar').remove();
+      Lost            = false;
+      CurrentScore    = 0;
+      gameLoopCounter = 0;
+      pipeDuration    = 15;
+
+      // Reset chaser
+      chaseX          = -10;
+      chaseSpeed      = 0.017;
+      chaseTop        = 40;
+      $('#Chaser').css({ left: chaseX + '%', top: chaseTop + '%' });
+
+      // Stop jammer fade & sound
+      clearInterval(jammerFadeInterval);
+      jammerFadeInterval = null;
+      jammerSound.pause();
+      jammerSound.currentTime = 0;
+
+      Birdy.Reset();
+      $('#LostScoreScreen').slideUp();
+
+      // Reset Kolkar spawn logic
+      nextKolkarSpawn = getKolkarSpawnTime();
+
+      startGame();
+    }
+
+    // 15% less frequent obstacles => was 90 loops => now ~104 loops
+    var pipeSpawnInterval = 100;
+
+    // COIN spawn logic => every 44 loops offset 22
+    var coinSpawnInterval = 44;
+    var coinSpawnOffset   = 22;
+
+    // JAMMER fade in from volume=0 to volume=0.5 over 10s
+    function startJammerFadeIn(){
+      if(isMuted || Lost) return;
+      jammerSound.volume = 0; 
+      jammerSound.currentTime = 0;
+      jammerSound.play();
+
+      var totalDuration = 10000; // 10 seconds
+      var steps = 50;           
+      var stepTime = totalDuration / steps; 
+      var finalVol = 0.5;
+      var volIncrement = finalVol / steps;
+
+      clearInterval(jammerFadeInterval);
+      jammerFadeInterval = setInterval(function(){
+        if(isMuted || Lost || jammerSound.paused){
+          clearInterval(jammerFadeInterval);
+          jammerFadeInterval = null;
+          return;
+        }
+        var newVol = jammerSound.volume + volIncrement;
+        if(newVol >= finalVol){
+          newVol = finalVol;
+          clearInterval(jammerFadeInterval);
+          jammerFadeInterval = null;
+        }
+        jammerSound.volume = newVol;
+      }, stepTime);
+    }
+
+    // KOLKAR logic:
+    // random spawn every 15-20s => ~15-20s * 33 loops/s => ~495-660 loops
+    var nextKolkarSpawn = 0;
+    function getKolkarSpawnTime(){
+      var minLoop = 495; // 15s
+      var maxLoop = 660; // 20s
+      var range   = maxLoop - minLoop;
+      var offset  = Math.floor(Math.random() * range) + minLoop;
+      return gameLoopCounter + offset;
+    }
+
+    function addKolkar(){
+      // We pick a random top between ~10% and ~70% so it doesn't go off bounds
+      var topVal = 10 + Math.random()*60;
+      // spawn the Kolkar 
+      var $kolkar = $('<div/>')
+        .addClass('Kolkar')
+        .css({
+          top: topVal + '%',
+          animation: 'KolkarMovement 6s linear'
+        })
+        .appendTo(canvasObject);
+
+      // play the first 2s of LightningShieldImpact.ogg at 0.4 vol
+      // only if not muted
+      if(!isMuted){
+        impactSound.currentTime = 0;
+        impactSound.play();
+        setTimeout(function(){
+          impactSound.pause();
+          impactSound.currentTime = 0;
+        }, 2000);
+      }
+    }
+    function cleanKolkar(){
+      $('.Kolkar').each(function(){
+        if($(this).offset().left / $(this).parent().width() < -0.3){
+          $(this).remove();
+        }
+      });
+    }
+
+    // PINE TREES
+    function addPipe(){
+      var PipeGap       = 30;
+      var MinPipeHeight = 5;
+      var MaxTopHeight  = 100 - PipeGap - 2*MinPipeHeight;
+      var TopPipeHeight = Math.random()*MaxTopHeight + MinPipeHeight;
+      var BottomTop     = TopPipeHeight + PipeGap;
+      var BottomHeight  = 100 - BottomTop;
+
+      // Top pipe
+      $('<div/>')
+        .addClass('Pipe TopPipe')
+        .css({
+          height: TopPipeHeight + '%',
+          animation: 'PipeMovement ' + pipeDuration + 's linear'
+        })
+        .data('scored', false)
+        .appendTo(canvasObject);
+
+      // Bottom pipe
+      $('<div/>')
+        .addClass('Pipe')
+        .css({
+          height: BottomHeight + '%',
+          top: BottomTop + '%',
+          animation: 'PipeMovement ' + pipeDuration + 's linear'
+        })
+        .data('scored', false)
+        .appendTo(canvasObject);
+    }
+
+    function cleanPipes(){
+      $('.Pipe').each(function(){
+        if($(this).offset().left / $(this).parent().width() < -0.2){
+          $(this).remove();
+        }
+      });
+    }
+
+    // COINS
+    function addCoin(){
+      var coinTop = 20 + Math.random()*60;
+      $('<div/>')
+        .addClass('Coin')
+        .css({
+          top: coinTop + '%',
+          animation: 'CoinMovement ' + pipeDuration + 's linear'
+        })
+        .appendTo(canvasObject);
+    }
+
+    function cleanCoins(){
+      $('.Coin').each(function(){
+        if($(this).offset().left / $(this).parent().width() < -0.2){
+          $(this).remove();
+        }
+      });
+    }
+
+    // CHASER
+    function updateChaser(){
+      if(!Lost && !Paused){
+        chaseX += chaseSpeed;
+        if(chaseX >= 20) {
+          endGame();
+          return;
+        }
+        var birdTopPercent = getTopPercent($('#Birdy'));
+        var diff = birdTopPercent - chaseTop;
+        chaseTop += chaseTrackFactor * diff; 
+        $('#Chaser').css({
+          left: chaseX + '%',
+          top: chaseTop + '%'
+        });
+      }
+    }
+
+    // MAIN GAME LOOP
+    var pipeSpawnCounter = 0; // track for pipe spawn
+    var coinSpawnCounter = 0; // track for coin spawn
+
+    function gameLoop(){
+      // Collisions etc. every other loop
+      if(gameLoopCounter % 2 === 0){
+        incrementScore();
+        checkCollisions();
+        checkCoinCollisions();
+        checkKolkarCollisions();
+      }
+
+      isInBound(Birdy.BirdyObject, canvasObject);
+      Birdy.fall();
+
+      // spawn pipes every 'pipeSpawnInterval' loops => 104
+      if(gameLoopCounter % pipeSpawnInterval === 0){
+        addPipe();
+        cleanPipes();
+      }
+      // spawn coins every 44 loops offset by 22
+      if(gameLoopCounter % coinSpawnInterval === coinSpawnOffset){
+        addCoin();
+        cleanCoins();
+      }
+
+      // update chaser
+      updateChaser();
+
+      // KOLKAR: spawn every 15-20s
+      if(gameLoopCounter >= nextKolkarSpawn){
+        addKolkar();
+        nextKolkarSpawn = getKolkarSpawnTime();
+      }
+      cleanKolkar();
+
+      gameLoopCounter++;
+    }
+
+    // CHECK COLLISIONS
+    function checkCollisions(){
+      $('.Pipe').each(function(){
+        if(isIntersecting(Birdy.BirdyObject, $(this))){
+          endGame();
+        }
+      });
+    }
+    function checkCoinCollisions(){
+      $('.Coin').each(function(){
+        if(isIntersecting(Birdy.BirdyObject, $(this))){
+          $(this).remove();
+          // 5% speed boost => pipeDuration *= 0.95
+          pipeDuration = pipeDuration * 0.95;
+
+          // slow chaser further
+          chaseSpeed -= 0.005;
+          if(chaseSpeed < 0) chaseSpeed = 0;
+
+          // show swipe gif for 2.5s
+          $('#SwipeGif').show();
+          setTimeout(function(){
+            $('#SwipeGif').hide();
+          }, 2500);
+        }
+      });
+    }
+    // Kolkar collisions
+    function checkKolkarCollisions(){
+      $('.Kolkar').each(function(){
+        if(isIntersecting(Birdy.BirdyObject, $(this))){
+          endGame();
+        }
+      });
+    }
+
+    function isIntersecting(obj1, obj2){
+      var o1 = [
+        obj1.offset().left,
+        obj1.offset().top,
+        obj1.offset().left + obj1.width(),
+        obj1.offset().top + obj1.height()
+      ];
+      var o2 = [
+        obj2.offset().left,
+        obj2.offset().top,
+        obj2.offset().left + obj2.width(),
+        obj2.offset().top + obj2.height()
+      ];
+      return !(o1[3]<o2[1] || o1[1]>o2[3] || o1[0]>o2[2] || o1[2]<o2[0]);
+    }
+
+    function isInBound(birdy, canvas){
+      if(birdy.offset().top + birdy.height() > canvas.height() || birdy.offset().top < 0){
+        endGame();
+      }
+    }
+
+    function incrementScore(){
+      $('.Pipe').each(function(){
+        if(!$(this).hasClass('TopPipe')){
+          var BirdyBeakXPos = Birdy.BirdyObject.offset().left + Birdy.BirdyObject.width();
+          var PipeRightXPos = $(this).offset().left + $(this).width();
+          if(!$(this).data('scored') && BirdyBeakXPos > PipeRightXPos){
+            CurrentScore++;
+            $(this).data('scored', true);
+
+            // If we just reached 3 points => start playing jammer on loop if not muted, fade in
+            if(CurrentScore === 1 && !isMuted){
+              startJammerFadeIn();
+            }
+          }
+        }
+      });
+      $('#CurrentScore').text(CurrentScore);
+    }
+
+    // GET & SET PERCENT UTILS
+    function getTopPercent($el){
+      var parent = $el.parent();
+      var parentTop = parent.offset().top;
+      var parentHeight = parent.height();
+      var elTop = $el.offset().top;
+      return 100 * (elTop - parentTop) / parentHeight;
+    }
+
+    // COOKIE HELPERS
+    function setCookie(cname,cvalue,exdays){
+      var d=new Date();
+      d.setTime(d.getTime() + (exdays*24*60*60*1000));
+      var expires = "expires="+ d.toUTCString();
+      document.cookie = cname + "=" + cvalue + "; " + expires;
+    }
+    function getCookie(cname){
+      var name=cname+"=";
+      var ca=document.cookie.split(';');
+      for(var i=0;i<ca.length;i++){
+        var c=ca[i].trim();
+        if(c.indexOf(name)===0)return c.substring(name.length,c.length);
+      }
+      return "";
+    }
+
+    // JQUERY ROTATE
+    $.fn.rotate = function(deg){
+      return this.css({
+        'transform': 'rotate('+deg+'deg)',
+        '-webkit-transform':'rotate('+deg+'deg)',
+        '-moz-transform':'rotate('+deg+'deg)'
+      });
+    };
+
+    /* INIT */
+    $('#InstructionBox').slideDown();
+    setTimeout(function(){ $('#InstructionBox').slideUp(); }, 4000);
+
+    // We'll set the initial nextKolkarSpawn
+    var nextKolkarSpawn = getKolkarSpawnTime();
+
+    canvasObject.mousedown(function(){ Birdy.jump(); });
+    $('body').keydown(function(e){
+      if(e.which===32){ // Space => reset
+        resetGame();
+      }
+      if(e.which===80){ // 'P' => pause
+        togglePause();
+      }
+    });
+    $('#PauseButton').mousedown(function(e){
+      e.stopPropagation();
+      togglePause();
+    });
+    $('#ResetButton').click(function(){
+      resetGame();
+    });
+
+    startGame();
+  });
+  </script>
+</body>
+</html>
