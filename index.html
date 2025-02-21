@@ -13,7 +13,8 @@
         html, body {
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            background: url('main/brill.png') no-repeat center center;
+            background-size: cover;
             overflow: hidden;
             font-family: Arial, sans-serif;
         }
@@ -250,7 +251,7 @@
         #Chaser {
             position: absolute;
             top: 40%;
-            left: -5%;
+            left: 10%; /* Closer to player */
             width: 10vw;
             height: 10vh;
             max-width: 125px;
@@ -353,7 +354,7 @@
                 },
                 jump() {
                     if (Paused || stunned) return;
-                    this.gravVeloc = -4; // Reduced jump height
+                    this.gravVeloc = -4;
                 },
                 move() {
                     if (!stunned && !Paused) {
@@ -419,7 +420,7 @@
                 gameLoopCounter = 0;
                 baseChaseSpeed = 0.2;
                 frostBoltCounter = 0;
-                $('#Chaser').css({ left: '-5%', top: '40%' });
+                $('#Chaser').css({ left: '10%', top: '40%' }); // Reset closer to player
                 Birdy.reset();
                 $('#LostScoreScreen').fadeOut(300);
                 nextLightningWallSpawn = 100;
@@ -468,18 +469,18 @@
                 const bolt = $('<div/>').addClass('LightningBolt')
                     .css({
                         left: $('#Chaser').offset().left + $('#Chaser').width(),
-                        top: chaserTop + (Math.random() - 0.5) * 30 + '%' // Wider vertical spread
+                        top: chaserTop + (Math.random() - 0.5) * 30 + '%'
                     })
                     .append(`<span>${label}</span>`)
                     .appendTo(canvasObject);
-                bolt.animate({ left: Birdy.selectorObject.offset().left + (Math.random() - 0.5) * 200 }, 1000, 'linear', function() { $(this).remove(); }); // Slower, more random path
+                bolt.animate({ left: Birdy.selectorObject.offset().left + (Math.random() - 0.5) * 200 }, 1000, 'linear', function() { $(this).remove(); });
                 lightningSound.currentTime = 0;
                 lightningSound.play();
             }
 
             let nextLightningWallSpawn = 100;
             function addLightningWall() {
-                const gapHeight = 35; // Larger gap
+                const gapHeight = 35;
                 const gapTop = Math.random() * (65 - gapHeight) + 10;
                 const wall = $('<div/>').addClass('LightningWall').css('top', '0%').appendTo(canvasObject);
                 wall.data({ gapTop, gapHeight });
@@ -527,10 +528,10 @@
                 $('#CurrentScore').text(CurrentScore);
 
                 if (gameLoopCounter % 50 === 0) addCoin();
-                if (gameLoopCounter % 15 === 0) addLightningBolt(); // More frequent frost bolts
+                if (gameLoopCounter % 8 === 0) addLightningBolt(); // Much more frequent frost bolts
                 if (gameLoopCounter >= nextLightningWallSpawn) {
                     addLightningWall();
-                    nextLightningWallSpawn = gameLoopCounter + 120 + Math.random() * 60; // Less frequent walls
+                    nextLightningWallSpawn = gameLoopCounter + 120 + Math.random() * 60;
                 }
                 if (gameLoopCounter >= nextKolkarSpawn) {
                     addKolkar();
@@ -538,7 +539,7 @@
                 }
 
                 checkCollisions();
-                currentMana -= 0.08; // Slightly slower mana drain
+                currentMana -= 0.08;
                 updateManaBar();
                 gameLoopCounter++;
             }
@@ -556,9 +557,9 @@
 
                 $('.LightningBolt').each(function() {
                     if (isIntersecting(Birdy.selectorObject, $(this)) && !stunned) {
-                        currentMana -= 15;
+                        currentMana -= 5; // Reduced damage from frost bolts
                         stunned = true;
-                        stunDuration = 20;
+                        stunDuration = 50; // 1.5 seconds at 30ms per frame (30 * 1.5 = 45, rounded to 50)
                         Birdy.selectorObject.addClass('stunned');
                         hitSound.play();
                         ohSound.currentTime = 0;
@@ -574,7 +575,7 @@
                         if (birdTop < gapTop || birdTop > gapTop + gapHeight) {
                             currentMana -= 30;
                             stunned = true;
-                            stunDuration = 30;
+                            stunDuration = 50; // 1.5 seconds
                             Birdy.selectorObject.addClass('stunned');
                             hitSound.play();
                             ohSound.currentTime = 0;
@@ -585,9 +586,9 @@
 
                 $('.Kolkar').each(function() {
                     if (isIntersecting(Birdy.selectorObject, $(this))) {
-                        currentMana -= 40;
+                        currentMana -= 34; // 15% less than 40 (40 * 0.85 = 34)
                         stunned = true;
-                        stunDuration = 40;
+                        stunDuration = 50; // 1.5 seconds
                         Birdy.selectorObject.addClass('stunned');
                         hitSound.play();
                         ohSound.currentTime = 0;
