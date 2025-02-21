@@ -343,7 +343,7 @@
 
     /* CHASER Data */
     var chaseX = -10;
-    var chaseSpeed = 0.017;
+    var chaseSpeed = 0.027;
     var chaseTop = 40;
     var chaseTrackFactor = 0.05;
 
@@ -353,7 +353,7 @@
 
     // oh.mp3 (75% quieter => volume=0.25)
     var ohSound = new Audio('main/oh.mp3');
-    ohSound.volume = 0.25;
+    ohSound.volume = 0.10;
 
     // jammer.mp3 (50% quieter => volume=0.5), loops, fade in over 10s
     var jammerSound = new Audio('main/jammer.mp3');
@@ -367,7 +367,7 @@
 
     // LightningShieldImpact.ogg for Kolkar charge (first 2 seconds at 0.4 volume)
     var impactSound = new Audio('main/LightningShieldImpact.ogg');
-    impactSound.volume = 0.2;
+    impactSound.volume = 0.1;
 
     // BIRD (PLAYER)
     var Birdy = new (function(){
