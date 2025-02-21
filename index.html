@@ -135,7 +135,20 @@
     <script>
         console.log('Script starting...');
 
-        // Button Event Handlers (Run Immediately)
+        // Preload Assets
+        const loader = PIXI.Loader.shared;
+        loader.add('background', 'main/brill.png')
+              .add('player', 'main/player.avif')
+              .add('chaser', 'main/chaser.JPG')
+              .add('coin', 'main/boostlogo.png')
+              .add('obstacle', 'main/kolkar.png')
+              .load((loader, resources) => {
+                  console.log('Assets loaded:', Object.keys(resources));
+                  initGame();
+              });
+        loader.onError.add((error) => console.error('Asset loading error:', error));
+
+        // Button Setup
         const startButton = document.getElementById('startButton');
         const tutorialButton = document.getElementById('tutorialButton');
         const restartButton = document.getElementById('restartButton');
@@ -161,17 +174,12 @@
             }
         });
 
-        // Initialize PixiJS Application
-        const app = new PIXI.Application({
-            width: window.innerWidth,
-            height: window.innerHeight,
-            backgroundColor: 0x1a1a2e,
-            resolution: window.devicePixelRatio || 1,
-            autoDensity: true
-        });
-        document.getElementById('gameContainer').appendChild(app.view);
+        // Game Initialization
+        let app, player, chaser, background, coins = [], frostBolts = [], obstacles = [];
+        let gameState = 'start', score = 0, bestScore = localStorage.getItem('bestScore') || 0;
+        let mana = 100, maxMana = 100, stunned = false, stunDuration = 0, coinStacks = 0, coinStackTimers = [];
+        let baseChaseSpeed = 0.12, minChaseSpeed = 0.04, playerSpeed = 0.2, permanentSpeedIncrease = 0;
 
-        // Audio Setup with Howler.js
         const sounds = {
             coin: new Howl({ src: ['main/coin.mp3'], volume: 0.1 }),
             bolt: new Howl({ src: ['main/lightning.mp3'], volume: 0.3 }),
@@ -180,60 +188,37 @@
             bgm: new Howl({ src: ['main/jammer.mp3'], loop: true, volume: 0 })
         };
 
-        // Game Variables
-        let gameState = 'start';
-        let score = 0;
-        let bestScore = localStorage.getItem('bestScore') || 0;
-        let mana = 100;
-        const maxMana = 100;
-        let stunned = false;
-        let stunDuration = 0;
-        let coinStacks = 0;
-        let coinStackTimers = [];
+        function initGame() {
+            console.log('Initializing game...');
+            app = new PIXI.Application({
+                width: window.innerWidth,
+                height: window.innerHeight,
+                backgroundColor: 0x1a1a2e,
+                resolution: window.devicePixelRatio || 1,
+                autoDensity: true
+            });
+            document.getElementById('gameContainer').appendChild(app.view);
 
-        // Chaser Variables
-        let baseChaseSpeed = 0.12;
-        const minChaseSpeed = 0.04;
-        const playerSpeed = 0.2;
-        let permanentSpeedIncrease = 0;
-
-        // Game Objects
-        let player, chaser, background;
-        const coins = [];
-        const frostBolts = [];
-        const obstacles = [];
-
-        // Background Setup
-        function createBackground() {
-            try {
-                background = new PIXI.TilingSprite(
-                    PIXI.Texture.from('main/brill.png'),
-                    app.screen.width * 2,
-                    app.screen.height
-                );
-                background.tileScale.set(0.5);
-                app.stage.addChild(background);
-            } catch (e) {
-                console.error('Failed to load background:', e);
-                background = new PIXI.Graphics();
-                background.beginFill(0x1a1a2e);
-                background.drawRect(0, 0, app.screen.width, app.screen.height);
-                background.endFill();
-                app.stage.addChild(background);
-            }
+            createBackground();
+            createPlayer();
+            createChaser();
+            app.ticker.add(updateGame);
+            console.log('Game initialized');
         }
 
-        // Player Setup
+        function createBackground() {
+            background = new PIXI.TilingSprite(
+                loader.resources['background'].texture || PIXI.Texture.WHITE,
+                app.screen.width * 2,
+                app.screen.height
+            );
+            background.tileScale.set(0.5);
+            app.stage.addChild(background);
+        }
+
         function createPlayer() {
-            try {
-                player = new PIXI.Sprite(PIXI.Texture.from('main/player.avif'));
-            } catch (e) {
-                console.error('Failed to load player sprite:', e);
-                player = new PIXI.Graphics();
-                player.beginFill(0x00ffff);
-                player.drawRect(0, 0, app.screen.width * 0.08, app.screen.height * 0.045);
-                player.endFill();
-            }
+            player = new PIXI.Sprite(loader.resources['player'].texture || PIXI.Texture.WHITE);
+            player.tint = loader.resources['player'].texture ? 0xffffff : 0x00ffff;
             player.anchor.set(0.5);
             player.width = app.screen.width * 0.08;
             player.height = app.screen.height * 0.045;
@@ -242,17 +227,9 @@
             app.stage.addChild(player);
         }
 
-        // Chaser Setup
         function createChaser() {
-            try {
-                chaser = new PIXI.Sprite(PIXI.Texture.from('main/chaser.JPG'));
-            } catch (e) {
-                console.error('Failed to load chaser sprite:', e);
-                chaser = new PIXI.Graphics();
-                chaser.beginFill(0xff00ff);
-                chaser.drawRect(0, 0, app.screen.width * 0.15, app.screen.height * 0.15);
-                chaser.endFill();
-            }
+            chaser = new PIXI.Sprite(loader.resources['chaser'].texture || PIXI.Texture.WHITE);
+            chaser.tint = loader.resources['chaser'].texture ? 0xffffff : 0xff00ff;
             chaser.anchor.set(0.5);
             chaser.width = app.screen.width * 0.15;
             chaser.height = app.screen.height * 0.15;
@@ -261,18 +238,9 @@
             app.stage.addChild(chaser);
         }
 
-        // Coin Setup
         function spawnCoin() {
-            let coin;
-            try {
-                coin = new PIXI.Sprite(PIXI.Texture.from('main/boostlogo.png'));
-            } catch (e) {
-                console.error('Failed to load coin sprite:', e);
-                coin = new PIXI.Graphics();
-                coin.beginFill(0xffff00);
-                coin.drawCircle(0, 0, app.screen.width * 0.02);
-                coin.endFill();
-            }
+            const coin = new PIXI.Sprite(loader.resources['coin'].texture || PIXI.Texture.WHITE);
+            coin.tint = loader.resources['coin'].texture ? 0xffffff : 0xffff00;
             coin.anchor.set(0.5);
             coin.width = app.screen.width * 0.04;
             coin.height = app.screen.height * 0.03;
@@ -283,7 +251,6 @@
             coins.push(coin);
         }
 
-        // Frost Bolt Setup
         function spawnFrostBolt() {
             const bolt = new PIXI.Container();
             const sprite = new PIXI.Sprite(PIXI.Texture.WHITE);
@@ -313,18 +280,9 @@
             sounds.bolt.play();
         }
 
-        // Obstacle Setup
         function spawnObstacle() {
-            let obstacle;
-            try {
-                obstacle = new PIXI.Sprite(PIXI.Texture.from('main/kolkar.png'));
-            } catch (e) {
-                console.error('Failed to load obstacle sprite:', e);
-                obstacle = new PIXI.Graphics();
-                obstacle.beginFill(0x888888);
-                obstacle.drawRect(0, 0, app.screen.width * 0.1, app.screen.height * 0.0875);
-                obstacle.endFill();
-            }
+            const obstacle = new PIXI.Sprite(loader.resources['obstacle'].texture || PIXI.Texture.WHITE);
+            obstacle.tint = loader.resources['obstacle'].texture ? 0xffffff : 0x888888;
             obstacle.anchor.set(0.5);
             obstacle.width = app.screen.width * 0.1;
             obstacle.height = app.screen.height * 0.0875;
@@ -335,9 +293,10 @@
             obstacles.push(obstacle);
         }
 
-        // Game Logic
         function updateGame(delta) {
             if (gameState !== 'playing') return;
+
+            console.log('Game loop running, frame delta:', delta);
 
             background.tilePosition.x -= 2 * delta;
 
@@ -426,7 +385,6 @@
             updateUI();
         }
 
-        // Collision Detection
         function checkCollision(obj1, obj2) {
             const bounds1 = obj1.getBounds();
             const bounds2 = obj2.getBounds();
@@ -436,7 +394,6 @@
                    bounds1.y + bounds1.height > bounds2.y;
         }
 
-        // UI Updates
         function updateManaBar() {
             document.getElementById('manaBar').style.width = (mana / maxMana * 100) + '%';
         }
@@ -445,12 +402,9 @@
             document.getElementById('coinCount').textContent = `Coins: ${coinStacks}`;
         }
 
-        // Game Loop
-        app.ticker.add(updateGame);
-
-        // Additional Event Handlers
         document.addEventListener('click', (e) => {
             if (gameState === 'playing' && !stunned && e.target.tagName !== 'BUTTON') {
+                console.log('Jump triggered');
                 player.vy = -8;
             }
         });
@@ -489,6 +443,7 @@
             setInterval(spawnCoin, 2000);
             setInterval(spawnFrostBolt, 1000);
             setInterval(spawnObstacle, 3000);
+            app.ticker.start(); // Explicitly start ticker
         }
 
         function endGame() {
@@ -531,12 +486,8 @@
             sounds.bgm.fade(0, 0.2, 20000);
             updateUI();
             updateManaBar();
+            app.ticker.start();
         }
-
-        // Initialize Game Objects
-        createBackground();
-        createPlayer();
-        createChaser();
 
         console.log('Script initialization complete');
     </script>
