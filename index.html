@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lightning Chase Survival</title>
+    <title>Lightning Chase: Survival</title>
     <style>
         * {
             margin: 0;
@@ -13,667 +13,458 @@
         html, body {
             width: 100%;
             height: 100%;
-            background: url('main/brill.png') no-repeat center center;
-            background-size: cover;
             overflow: hidden;
-            font-family: Arial, sans-serif;
+            background: #1a1a2e;
+            font-family: 'Arial', sans-serif;
         }
-        #Canvas {
-            position: relative;
+        #gameContainer {
             width: 100%;
             height: 100%;
-            cursor: default;
+            position: relative;
             display: none;
         }
-
-        #StartScreen {
+        #startScreen, #gameOverScreen {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
+            background: rgba(0, 0, 0, 0.8);
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            background: rgba(0,0,0,0.8);
             z-index: 1000;
-        }
-        #StartButton, #TutorialButton {
-            background: #00ffff;
-            border: none;
-            padding: 2vh 4vw;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 2vw;
-            color: #1a1a2e;
-            margin: 1vh;
-            transition: transform 0.2s;
-        }
-        #StartButton:hover, #TutorialButton:hover {
-            transform: scale(1.05);
-        }
-        #Tutorial {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.9);
             color: #00ffff;
-            padding: 2vw;
-            border-radius: 10px;
-            font-size: 1.5vw;
-            display: none;
-            z-index: 1001;
-            max-width: 50vw;
             text-align: center;
         }
-
-        #ManaBarContainer {
+        #gameOverScreen {
+            display: none;
+        }
+        button {
+            background: #00ffff;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.5em;
+            color: #1a1a2e;
+            margin: 10px;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: scale(1.05);
+        }
+        #manaBarContainer {
             position: absolute;
-            top: 2vh;
+            top: 20px;
             left: 50%;
             transform: translateX(-50%);
-            width: 40vw;
-            height: 2vh;
-            background: rgba(0,0,0,0.7);
-            border: 2px solid #00ffff;
-            border-radius: 10px;
+            width: 50%;
+            height: 30px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 3px solid #00ffff;
+            border-radius: 15px;
             overflow: hidden;
             z-index: 200;
         }
-        #ManaBar {
+        #manaBar {
             width: 100%;
             height: 100%;
             background: linear-gradient(90deg, #00ffff, #00b7eb);
             transition: width 0.3s ease;
-            box-shadow: 0 0 8px #00ffff;
-        }
-
-        #Header {
-            position: absolute;
-            top: 5vh;
-            left: 50%;
-            transform: translateX(-50%);
-            color: #00ffff;
-            font-weight: bold;
-            font-size: 1.2vw;
-            text-shadow: 0 0 4px #00ffff;
-            z-index: 9999;
-        }
-
-        #Birdy {
-            position: absolute;
-            top: 40%;
-            left: 50%;
-            width: 8vw;
-            height: 4.5vh;
-            max-width: 100px;
-            max-height: 56px;
-            min-width: 30px;
-            min-height: 16px;
-            background-image: url('main/player.avif');
-            background-size: cover;
-            background-position: center;
-            z-index: 150;
-            transform: translateX(-50%);
-            transition: transform 0.1s ease;
-        }
-        .stunned {
-            filter: brightness(0.5) blur(1px);
-            animation: shake 0.2s infinite;
-        }
-        @keyframes shake {
-            0% { transform: translate(1px, 0.5px) translateX(-50%); }
-            50% { transform: translate(-1px, -0.5px) translateX(-50%); }
-            100% { transform: translate(1px, 0.5px) translateX(-50%); }
-        }
-
-        .Coin {
-            position: absolute;
-            width: 4vw;
-            height: 3vh;
-            max-width: 60px;
-            max-height: 45px;
-            background-image: url('main/boostlogo.png');
-            background-size: cover;
-            background-position: center;
-            left: 100%;
-            z-index: 140;
-            animation: CoinMovement 5s linear, glow 1s infinite alternate;
-        }
-        @keyframes glow {
-            from { box-shadow: 0 0 3px gold; }
-            to { box-shadow: 0 0 8px gold; }
-        }
-
-        .LightningBolt {
-            position: absolute;
-            width: 2vw;
-            height: 10vh;
-            background: linear-gradient(0deg, transparent, #00b7eb, transparent);
-            opacity: 0.5;
-            z-index: 145;
-            animation: boltFade 2s linear; /* Slower for readability */
-            box-shadow: 0 0 5px #00b7eb;
-        }
-        .LightningBolt span {
-            position: absolute;
-            top: -2vh;
-            left: 50%;
-            transform: translateX(-50%);
-            color: white;
-            font-weight: bold;
-            text-decoration: underline;
-            font-size: 1vw;
-            text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
-        }
-        .LightningWall {
-            position: absolute;
-            width: 6vw;
-            height: 100vh;
-            left: 100%;
-            background: repeating-linear-gradient(0deg, #00ffff 0%, #00ffff 15%, transparent 15%, transparent 30%);
-            opacity: 0.6;
-            z-index: 148;
-            animation: WallMovement 5s linear;
             box-shadow: 0 0 10px #00ffff;
         }
-        @keyframes WallMovement { from { left: 100%; } to { left: -10%; } }
-        @keyframes CoinMovement { from { left: 100%; } to { left: -10%; } }
-        @keyframes boltFade { 0% { opacity: 0.5; } 100% { opacity: 0; } }
-
-        #CurrentScoreCard {
+        #scoreDisplay {
             position: absolute;
-            left: 2vw;
-            top: 2vh;
-            font-size: 1.5vw;
+            top: 10px;
+            left: 20px;
+            font-size: 1.5em;
             color: #00ffff;
-            text-shadow: 0 0 4px #00ffff;
-            z-index: 50;
-            pointer-events: none;
+            text-shadow: 0 0 5px #00ffff;
+            z-index: 200;
         }
-
-        #LostScoreScreen {
+        #coinCount {
             position: absolute;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-            padding: 1.5vw;
-            background: rgba(0,0,0,0.8);
-            border: 2px solid #00ffff;
-            border-radius: 8px;
-            text-align: center;
-            display: none;
-            font-size: 1.5vw;
-            color: #00ffff;
-            z-index: 150;
-            width: 30vw;
-            max-width: 400px;
-            box-shadow: 0 0 15px #00ffff;
+            top: 10px;
+            right: 20px;
+            font-size: 1.5em;
+            color: gold;
+            text-shadow: 0 0 5px gold;
+            z-index: 200;
         }
-        #FinalScore, #BestScore {
-            font-weight: bold;
-            font-size: 2vw;
-            text-shadow: 0 0 8px #00ffff;
-        }
-        #ResetButton {
-            background: #00ffff;
-            border: none;
-            padding: 0.8vh 2vw;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1.2vw;
-            color: #1a1a2e;
-            transition: transform 0.2s;
-        }
-        #ResetButton:hover {
-            transform: scale(1.05);
-        }
-
-        #PauseButton {
-            position: absolute;
-            top: 2vh;
-            right: 1vw;
-            width: 2.5vw;
-            max-width: 35px;
-            background: #00ffff;
-            border-radius: 0.4vw;
-            font-size: 1.5vw;
-            text-align: center;
-            z-index: 50;
-            cursor: pointer;
-            padding: 0.4vh 0;
-            box-shadow: 0 0 8px #00ffff;
-            transition: transform 0.2s;
-        }
-        #PauseButton:hover {
-            transform: scale(1.1);
-        }
-
-        #Chaser {
-            position: absolute;
-            top: 40%;
-            left: 10%;
-            width: 15vw; /* Increased size */
-            height: 15vh;
-            max-width: 200px;
-            max-height: 200px;
-            min-width: 60px;
-            min-height: 60px;
-            background-image: url('main/chaser.JPG');
-            background-size: cover;
-            background-position: center;
-            background-color: #ff00ff; /* Fallback color */
-            z-index: 100;
-            filter: drop-shadow(0 0 8px #ff00ff);
-            border: 2px solid #ff00ff; /* Temporary visibility aid */
-        }
-
-        .Kolkar {
-            position: absolute;
-            width: 10vw;
-            height: 8.75vh;
-            max-width: 125px;
-            max-height: 109px;
-            background-image: url('main/kolkar.png');
-            background-size: cover;
-            background-position: center;
-            left: 100%;
-            z-index: 160;
-            animation: KolkarMovement 5s linear;
-        }
-        @keyframes KolkarMovement { from { left: 100%; } to { left: -15%; } }
-        .paused { animation-play-state: paused; }
     </style>
 </head>
 <body>
-    <div id="StartScreen">
-        <button id="StartButton">Start Game</button>
-        <button id="TutorialButton">Tutorial</button>
-    </div>
-    <div id="Tutorial">
-        Click to jump<br>
-        Space to reset<br>
-        P to pause<br>
-        Collect coins to slow the chaser<br>
-        Dodge frost bolts and walls<br>
-        Survive until the chaser catches you!<br>
-        (Click anywhere to close)
-    </div>
-    <div id="ManaBarContainer"><div id="ManaBar"></div></div>
-    <div id="Header">Made By TheMizeGuy</div>
-    <div id="Canvas">
-        <div id="CurrentScoreCard" class="noSelect"><span id="CurrentScore">0</span></div>
-        <div id="LostScoreScreen" class="noSelect">
-            <span>Distance Survived</span><br><span id="FinalScore">0</span><br>
-            <span>Best</span><br><span id="BestScore">0</span><br><br>
-            <button id="ResetButton" type="button">Reset</button>
+    <div id="startScreen">
+        <h1>Lightning Chase: Survival</h1>
+        <button id="startButton">Start Game</button>
+        <button id="tutorialButton">Tutorial</button>
+        <div id="tutorial" style="display: none; margin-top: 20px; font-size: 1.2em;">
+            Click to jump<br>
+            Space to reset<br>
+            P to pause<br>
+            Collect coins to slow the chaser<br>
+            Dodge frost bolts and obstacles<br>
+            Survive as long as you can!<br>
+            (Click anywhere to close)
         </div>
-        <div id="Birdy"></div>
-        <div id="PauseButton" class="noSelect">||</div>
-        <div id="Chaser"></div>
     </div>
+    <div id="gameOverScreen">
+        <h1>Game Over</h1>
+        <p>Distance Survived: <span id="finalScore">0</span></p>
+        <p>Best Score: <span id="bestScore">0</span></p>
+        <button id="restartButton">Restart</button>
+    </div>
+    <div id="manaBarContainer"><div id="manaBar"></div></div>
+    <div id="scoreDisplay">Score: 0</div>
+    <div id="coinCount">Coins: 0</div>
+    <div id="gameContainer"></div>
 
-    <script src="main/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/6.5.2/pixi.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js"></script>
     <script>
-        $(function() {
-            const canvasObject = $('#Canvas');
-            let gameLoopIntervalID = 0;
-            let Paused = true;
-            let Lost = false;
-            let CurrentScore = 0;
-            let gameLoopCounter = 0;
-            const maxMana = 100;
-            let currentMana = maxMana;
-            let stunned = false;
-            let stunDuration = 0;
-            let frostBoltCounter = 0;
-            let coinStacks = 0;
-            let coinStackTimers = [];
+        // Initialize PixiJS Application
+        const app = new PIXI.Application({
+            width: window.innerWidth,
+            height: window.innerHeight,
+            backgroundColor: 0x1a1a2e,
+            resolution: window.devicePixelRatio || 1,
+            autoDensity: true
+        });
+        document.getElementById('gameContainer').appendChild(app.view);
 
-            // Chaser variables
-            let baseChaseSpeed = 0.12; // 20% slower
-            const minChaseSpeed = 0.04; // 20% slower
-            const playerSpeed = 0.2;
-            let permanentSpeedIncrease = 0;
+        // Audio Setup with Howler.js
+        const sounds = {
+            coin: new Howl({ src: ['main/coin.mp3'], volume: 0.1 }),
+            bolt: new Howl({ src: ['main/lightning.mp3'], volume: 0.3 }),
+            hit: new Howl({ src: ['main/hit.mp3'], volume: 0.4 }),
+            death: new Howl({ src: ['main/death.mp3'], volume: 0.7 }),
+            bgm: new Howl({ src: ['main/jammer.mp3'], loop: true, volume: 0 })
+        };
 
-            // Audio setup
-            const coinSound = new Audio('main/coin.mp3'); coinSound.volume = 0.1;
-            const lightningSound = new Audio('main/lightning.mp3'); lightningSound.volume = 0.3;
-            const hitSound = new Audio('main/hit.mp3'); hitSound.volume = 0.4;
-            const deathSound = new Audio('main/death.mp3'); deathSound.volume = 0.7;
-            const jammerSound = new Audio('main/jammer.mp3'); jammerSound.loop = true;
-            const ohSound = new Audio('main/oh.mp3'); ohSound.volume = 0.2;
-            let jammerFadeInterval = null;
+        // Game Variables
+        let gameState = 'start';
+        let score = 0;
+        let bestScore = localStorage.getItem('bestScore') || 0;
+        let mana = 100;
+        const maxMana = 100;
+        let stunned = false;
+        let stunDuration = 0;
+        let coinStacks = 0;
+        let coinStackTimers = [];
+        
+        // Chaser Variables
+        let baseChaseSpeed = 0.12;
+        const minChaseSpeed = 0.04;
+        const playerSpeed = 0.2;
+        let permanentSpeedIncrease = 0;
 
-            // Player object
-            const Birdy = {
-                selectorObject: $('#Birdy'),
-                gravVeloc: 0,
-                gravAccel: 0.35,
-                terminalVelocity: 12,
-                reset() {
-                    this.gravVeloc = 0;
+        // Game Objects
+        let player, chaser, background;
+        const coins = [];
+        const frostBolts = [];
+        const obstacles = [];
+
+        // Background Setup
+        function createBackground() {
+            background = new PIXI.TilingSprite(
+                PIXI.Texture.from('main/brill.png'),
+                app.screen.width * 2,
+                app.screen.height
+            );
+            background.tileScale.set(0.5);
+            app.stage.addChild(background);
+        }
+
+        // Player Setup
+        function createPlayer() {
+            player = new PIXI.Sprite(PIXI.Texture.from('main/player.avif'));
+            player.anchor.set(0.5);
+            player.width = app.screen.width * 0.08;
+            player.height = app.screen.height * 0.045;
+            player.x = app.screen.width / 2;
+            player.y = app.screen.height / 2;
+            app.stage.addChild(player);
+        }
+
+        // Chaser Setup
+        function createChaser() {
+            chaser = new PIXI.Sprite(PIXI.Texture.from('main/chaser.JPG'));
+            chaser.anchor.set(0.5);
+            chaser.width = app.screen.width * 0.15;
+            chaser.height = app.screen.height * 0.15;
+            chaser.x = app.screen.width * 0.1;
+            chaser.y = app.screen.height / 2;
+            app.stage.addChild(chaser);
+        }
+
+        // Coin Setup
+        function spawnCoin() {
+            const coin = new PIXI.Sprite(PIXI.Texture.from('main/boostlogo.png'));
+            coin.anchor.set(0.5);
+            coin.width = app.screen.width * 0.04;
+            coin.height = app.screen.height * 0.03;
+            coin.x = app.screen.width + 50;
+            coin.y = Math.random() * (app.screen.height - 100) + 50;
+            coin.vx = -5;
+            app.stage.addChild(coin);
+            coins.push(coin);
+        }
+
+        // Frost Bolt Setup
+        function spawnFrostBolt() {
+            const bolt = new PIXI.Container();
+            const sprite = new PIXI.Sprite(PIXI.Texture.from('main/frostbolt.png')); // Assume this exists
+            sprite.anchor.set(0.5);
+            sprite.width = app.screen.width * 0.02;
+            sprite.height = app.screen.height * 0.1;
+            bolt.addChild(sprite);
+
+            const text = new PIXI.Text(frostBolts.length % 2 === 0 ? 'R1' : 'OOM', {
+                fontFamily: 'Arial',
+                fontSize: 24,
+                fill: '#ffffff',
+                stroke: '#000000',
+                strokeThickness: 4,
+                align: 'center'
+            });
+            text.anchor.set(0.5);
+            text.y = -sprite.height / 2 - 10;
+            bolt.addChild(text);
+
+            bolt.x = chaser.x + chaser.width / 2;
+            bolt.y = chaser.y + (Math.random() - 0.5) * 100;
+            bolt.vx = 2; // Slower for readability
+            app.stage.addChild(bolt);
+            frostBolts.push(bolt);
+            sounds.bolt.play();
+        }
+
+        // Obstacle Setup
+        function spawnObstacle() {
+            const obstacle = new PIXI.Sprite(PIXI.Texture.from('main/kolkar.png'));
+            obstacle.anchor.set(0.5);
+            obstacle.width = app.screen.width * 0.1;
+            obstacle.height = app.screen.height * 0.0875;
+            obstacle.x = app.screen.width + 50;
+            obstacle.y = Math.random() * (app.screen.height - 100) + 50;
+            obstacle.vx = -4;
+            app.stage.addChild(obstacle);
+            obstacles.push(obstacle);
+        }
+
+        // Game Logic
+        function updateGame(delta) {
+            if (gameState !== 'playing') return;
+
+            // Background Scroll
+            background.tilePosition.x -= 2 * delta;
+
+            // Player Movement
+            if (!stunned) {
+                player.y += player.vy || 0;
+                player.vy = (player.vy || 0) + 0.35 * delta;
+                player.y = Math.max(player.height / 2, Math.min(app.screen.height - player.height / 2, player.y));
+            }
+
+            // Chaser Movement
+            const playerLeft = app.screen.width / 2;
+            const chaseLeft = chaser.x;
+            const distance = playerLeft - chaseLeft;
+            const distanceFactor = Math.max(0, distance / (app.screen.width * 0.4));
+            let speedReduction = coinStacks >= 4 ? playerSpeed * (coinStacks === 4 ? 1 : 1.2) : 0;
+            let chaseSpeed = Math.max(minChaseSpeed, (baseChaseSpeed + permanentSpeedIncrease - speedReduction) * (0.5 + 0.5 * distanceFactor));
+            if (stunned) chaseSpeed *= 2;
+            chaser.x += chaseSpeed * delta;
+            chaser.y += (player.y - chaser.y) * 0.05 * delta;
+            if (chaser.x >= playerLeft - player.width / 2) endGame();
+
+            // Coin Update
+            coins.forEach((coin, index) => {
+                coin.x += coin.vx * delta;
+                if (checkCollision(coin, player)) {
+                    coins.splice(index, 1);
+                    app.stage.removeChild(coin);
+                    mana = Math.min(maxMana, mana + 20);
+                    coinStackTimers.push(167);
+                    coinStacks = Math.min(5, coinStackTimers.length);
+                    sounds.coin.play();
+                    updateUI();
+                } else if (coin.x < -coin.width) {
+                    coins.splice(index, 1);
+                    app.stage.removeChild(coin);
+                }
+            });
+
+            // Frost Bolt Update
+            frostBolts.forEach((bolt, index) => {
+                bolt.x += bolt.vx * delta;
+                if (checkCollision(bolt, player)) {
+                    frostBolts.splice(index, 1);
+                    app.stage.removeChild(bolt);
+                    mana -= 5;
+                    sounds.hit.play();
+                    sounds.oh.play();
+                } else if (bolt.x > app.screen.width + 50) {
+                    frostBolts.splice(index, 1);
+                    app.stage.removeChild(bolt);
+                }
+            });
+
+            // Obstacle Update
+            obstacles.forEach((obstacle, index) => {
+                obstacle.x += obstacle.vx * delta;
+                if (checkCollision(obstacle, player)) {
+                    obstacles.splice(index, 1);
+                    app.stage.removeChild(obstacle);
+                    mana -= 34;
+                    sounds.hit.play();
+                    sounds.oh.play();
+                } else if (obstacle.x < -obstacle.width) {
+                    obstacles.splice(index, 1);
+                    app.stage.removeChild(obstacle);
+                }
+            });
+
+            // Mana and Stun
+            mana -= 0.08 * delta;
+            if (mana <= 0 && !stunned) {
+                stunned = true;
+                stunDuration = 67;
+                sounds.hit.play();
+                sounds.oh.play();
+            }
+            if (stunDuration > 0) {
+                stunDuration -= delta;
+                if (stunDuration <= 0) {
                     stunned = false;
-                    currentMana = maxMana;
-                    this.selectorObject.removeClass('stunned').css({ top: '40%', left: '50%' });
-                    updateManaBar();
-                },
-                fall() {
-                    if (!Paused) {
-                        const newTop = this.getTopPercent() + this.gravVeloc;
-                        this.selectorObject.css('top', clamp(newTop, 0, 90) + '%');
-                        this.gravVeloc = Math.min(this.gravVeloc + this.gravAccel, this.terminalVelocity);
-                    }
-                },
-                jump() {
-                    if (Paused || stunned) return;
-                    this.gravVeloc = -4;
-                },
-                getTopPercent() { return parseFloat(this.selectorObject.css('top')) / $(window).height() * 100; }
-            };
-
-            // Start screen handlers
-            $('#StartButton').on('click', () => {
-                $('#StartScreen').hide();
-                canvasObject.show();
-                startGame();
-            });
-            $('#TutorialButton').on('click', () => $('#Tutorial').show());
-            $(document).on('click', e => {
-                if ($(e.target).closest('#Tutorial').length && !$(e.target).is('#TutorialButton')) {
-                    $('#Tutorial').hide();
-                }
-            });
-
-            // Game state management
-            function startGame() {
-                if (Lost) return;
-                gameLoopIntervalID = setInterval(gameLoop, 30);
-                $('.Coin, .LightningWall, .Kolkar').removeClass('paused');
-                $('#PauseButton').text('||');
-                Paused = false;
-                startJammerFade();
-            }
-
-            function pauseGame() {
-                clearInterval(gameLoopIntervalID);
-                $('.Coin, .LightningWall, .Kolkar').addClass('paused');
-                $('#PauseButton').text('▶');
-                Paused = true;
-                jammerSound.pause();
-            }
-
-            function togglePause() { Paused ? startGame() : pauseGame(); }
-
-            function endGame() {
-                Lost = true;
-                pauseGame();
-                const highScore = Math.max(CurrentScore, parseInt(getCookie('HighScore') || 0));
-                setCookie('HighScore', highScore, 9999);
-                $('#FinalScore').text(CurrentScore);
-                $('#BestScore').text(highScore);
-                $('#LostScoreScreen').fadeIn(300);
-                deathSound.play();
-                clearInterval(jammerFadeInterval);
-                jammerSound.pause();
-            }
-
-            function resetGame() {
-                pauseGame();
-                $('.Coin, .LightningBolt, .LightningWall, .Kolkar').remove();
-                Lost = false;
-                CurrentScore = 0;
-                gameLoopCounter = 0;
-                baseChaseSpeed = 0.12;
-                permanentSpeedIncrease = 0;
-                coinStacks = 0;
-                coinStackTimers = [];
-                frostBoltCounter = 0;
-                $('#Chaser').css({ left: '10%', top: '40%' });
-                Birdy.reset();
-                $('#LostScoreScreen').fadeOut(300);
-                nextLightningWallSpawn = 100;
-                nextKolkarSpawn = 150;
-                clearInterval(jammerFadeInterval);
-                jammerSound.currentTime = 0;
-                startGame();
-            }
-
-            // Audio management
-            function startJammerFade() {
-                jammerSound.volume = 0;
-                jammerSound.play();
-                const fadeDuration = 20000;
-                const maxVolume = 0.2;
-                const steps = 100;
-                const stepTime = fadeDuration / steps;
-                const volIncrement = maxVolume / steps;
-                
-                clearInterval(jammerFadeInterval);
-                jammerFadeInterval = setInterval(() => {
-                    if (Paused || Lost) {
-                        clearInterval(jammerFadeInterval);
-                        return;
-                    }
-                    const newVol = Math.min(jammerSound.volume + volIncrement, maxVolume);
-                    jammerSound.volume = newVol;
-                    if (newVol >= maxVolume) clearInterval(jammerFadeInterval);
-                }, stepTime);
-            }
-
-            // Game elements
-            function updateManaBar() {
-                $('#ManaBar').css('width', (currentMana / maxMana * 100) + '%');
-                if (currentMana <= 0 && !stunned) {
-                    stunned = true;
-                    stunDuration = 67; // 2 seconds
-                    Birdy.selectorObject.addClass('stunned');
-                    hitSound.play();
-                    ohSound.currentTime = 0;
-                    ohSound.play();
+                    mana = maxMana * 0.1;
                 }
             }
+            updateManaBar();
 
-            function addCoin() {
-                $('<div/>').addClass('Coin').css({ top: 20 + Math.random() * 50 + '%' }).appendTo(canvasObject);
+            // Coin Stacks
+            coinStackTimers = coinStackTimers.map(t => t - delta).filter(t => t > 0);
+            coinStacks = Math.min(5, coinStackTimers.length);
+
+            // Score and Speed Increase
+            score += delta / 10;
+            permanentSpeedIncrease += 0.000008 * delta;
+            updateUI();
+        }
+
+        // Collision Detection
+        function checkCollision(obj1, obj2) {
+            const bounds1 = obj1.getBounds();
+            const bounds2 = obj2.getBounds();
+            return bounds1.x < bounds2.x + bounds2.width &&
+                   bounds1.x + bounds1.width > bounds2.x &&
+                   bounds1.y < bounds2.y + bounds2.height &&
+                   bounds1.y + bounds1.height > bounds2.y;
+        }
+
+        // UI Updates
+        function updateManaBar() {
+            document.getElementById('manaBar').style.width = (mana / maxMana * 100) + '%';
+        }
+        function updateUI() {
+            document.getElementById('scoreDisplay').textContent = `Score: ${Math.floor(score)}`;
+            document.getElementById('coinCount').textContent = `Coins: ${coinStacks}`;
+        }
+
+        // Game Loop
+        app.ticker.add(updateGame);
+
+        // Event Handlers
+        document.getElementById('startButton').addEventListener('click', () => {
+            document.getElementById('startScreen').style.display = 'none';
+            document.getElementById('gameContainer').style.display = 'block';
+            gameState = 'playing';
+            sounds.bgm.play();
+            sounds.bgm.fade(0, 0.2, 20000);
+            spawnCoin();
+            spawnFrostBolt();
+            spawnObstacle();
+            setInterval(spawnCoin, 2000);
+            setInterval(spawnFrostBolt, 1000);
+            setInterval(spawnObstacle, 3000);
+        });
+
+        document.getElementById('tutorialButton').addEventListener('click', () => {
+            document.getElementById('tutorial').style.display = 'block';
+        });
+
+        document.addEventListener('click', (e) => {
+            if (e.target !== document.getElementById('tutorialButton') && document.getElementById('tutorial').style.display === 'block') {
+                document.getElementById('tutorial').style.display = 'none';
             }
-
-            function addLightningBolt() {
-                const chaserTop = parseFloat($('#Chaser').css('top'));
-                const label = frostBoltCounter % 2 === 0 ? 'R1' : 'OOM';
-                frostBoltCounter++;
-                const bolt = $('<div/>').addClass('LightningBolt')
-                    .css({
-                        left: $('#Chaser').offset().left + $('#Chaser').width(),
-                        top: chaserTop + (Math.random() - 0.5) * 30 + '%'
-                    })
-                    .append(`<span>${label}</span>`)
-                    .appendTo(canvasObject);
-                bolt.animate({ left: Birdy.selectorObject.offset().left + (Math.random() - 0.5) * 200 }, 2000, 'linear', function() { $(this).remove(); }); // Slower for readability
-                lightningSound.currentTime = 0;
-                lightningSound.play();
+            if (gameState === 'playing' && !stunned) {
+                player.vy = -8;
             }
+        });
 
-            let nextLightningWallSpawn = 100;
-            function addLightningWall() {
-                const gapHeight = 35;
-                const gapTop = Math.random() * (65 - gapHeight) + 10;
-                const wall = $('<div/>').addClass('LightningWall').css('top', '0%').appendTo(canvasObject);
-                wall.data({ gapTop, gapHeight });
-                lightningSound.currentTime = 0;
-                lightningSound.play();
+        document.addEventListener('keydown', (e) => {
+            if (e.key === ' ' && gameState === 'over') {
+                restartGame();
             }
-
-            let nextKolkarSpawn = 150;
-            function addKolkar() {
-                $('<div/>').addClass('Kolkar').css('top', 10 + Math.random() * 60 + '%').appendTo(canvasObject);
-            }
-
-            function updateChaser() {
-                if (!Lost && !Paused) {
-                    const playerLeft = 50;
-                    const chaseLeft = parseFloat($('#Chaser').css('left')) / $(window).width() * 100;
-                    const distance = playerLeft - chaseLeft;
-                    const distanceFactor = Math.max(0, distance / 40);
-
-                    let speedReduction = 0;
-                    if (coinStacks >= 4) speedReduction = playerSpeed * (coinStacks === 4 ? 1 : 1.2);
-
-                    let chaseSpeed = Math.max(minChaseSpeed, (baseChaseSpeed + permanentSpeedIncrease - speedReduction) * (0.5 + 0.5 * distanceFactor));
-                    if (stunned) chaseSpeed *= 2;
-
-                    const newChaseLeft = chaseLeft + chaseSpeed;
-                    const birdTop = Birdy.getTopPercent();
-                    const chaseTop = parseFloat($('#Chaser').css('top'));
-                    const diff = birdTop - chaseTop;
-                    
-                    $('#Chaser').css({
-                        left: clamp(newChaseLeft, 0, 49) + '%',
-                        top: (chaseTop + diff * 0.05) + '%'
-                    });
-
-                    if (newChaseLeft >= 49) endGame();
+            if (e.key === 'p') {
+                if (gameState === 'playing') {
+                    gameState = 'paused';
+                    sounds.bgm.pause();
+                } else if (gameState === 'paused') {
+                    gameState = 'playing';
+                    sounds.bgm.play();
                 }
             }
+        });
 
-            function updateCoinStacks() {
-                coinStackTimers = coinStackTimers.map(timer => timer - 1).filter(timer => timer > 0);
-                coinStacks = Math.min(5, coinStackTimers.length);
+        document.getElementById('restartButton').addEventListener('click', restartGame);
+
+        function endGame() {
+            gameState = 'over';
+            document.getElementById('gameOverScreen').style.display = 'flex';
+            document.getElementById('finalScore').textContent = Math.floor(score);
+            if (score > bestScore) {
+                bestScore = score;
+                localStorage.setItem('bestScore', bestScore);
             }
+            document.getElementById('bestScore').textContent = Math.floor(bestScore);
+            sounds.death.play();
+            sounds.bgm.stop();
+        }
 
-            // Main game loop
-            function gameLoop() {
-                if (stunDuration > 0) {
-                    stunDuration--;
-                    if (stunDuration <= 0) {
-                        stunned = false;
-                        Birdy.selectorObject.removeClass('stunned');
-                        currentMana = maxMana * 0.1; // Regain 10% mana
-                    }
-                }
+        function restartGame() {
+            document.getElementById('gameOverScreen').style.display = 'none';
+            document.getElementById('gameContainer').style.display = 'block';
+            coins.forEach(c => app.stage.removeChild(c));
+            frostBolts.forEach(b => app.stage.removeChild(b));
+            obstacles.forEach(o => app.stage.removeChild(o));
+            coins.length = 0;
+            frostBolts.length = 0;
+            obstacles.length = 0;
+            score = 0;
+            mana = maxMana;
+            stunned = false;
+            stunDuration = 0;
+            coinStacks = 0;
+            coinStackTimers = [];
+            baseChaseSpeed = 0.12;
+            permanentSpeedIncrease = 0;
+            chaser.x = app.screen.width * 0.1;
+            chaser.y = app.screen.height / 2;
+            player.y = app.screen.height / 2;
+            gameState = 'playing';
+            sounds.bgm.play();
+            sounds.bgm.fade(0, 0.2, 20000);
+            updateUI();
+            updateManaBar();
+        }
 
-                Birdy.fall();
-                updateChaser();
-                updateCoinStacks();
-                CurrentScore = Math.floor(gameLoopCounter / 10);
-                $('#CurrentScore').text(CurrentScore);
-
-                if (gameLoopCounter % 50 === 0) addCoin();
-                if (gameLoopCounter % 8 === 0) addLightningBolt();
-                if (gameLoopCounter >= nextLightningWallSpawn) {
-                    addLightningWall();
-                    nextLightningWallSpawn = gameLoopCounter + 120 + Math.random() * 60;
-                }
-                if (gameLoopCounter >= nextKolkarSpawn) {
-                    addKolkar();
-                    nextKolkarSpawn = gameLoopCounter + 100 + Math.random() * 50;
-                }
-
-                checkCollisions();
-                currentMana -= 0.08;
-                permanentSpeedIncrease += 0.000008; // 20% slower increase
-                updateManaBar();
-                gameLoopCounter++;
-            }
-
-            // Collision detection
-            function checkCollisions() {
-                $('.Coin').each(function() {
-                    if (isIntersecting(Birdy.selectorObject, $(this))) {
-                        $(this).remove();
-                        currentMana = Math.min(maxMana, currentMana + 20);
-                        coinStackTimers.push(167);
-                        coinStacks = Math.min(5, coinStackTimers.length);
-                        coinSound.currentTime = 0;
-                        coinSound.play();
-                    }
-                });
-
-                $('.LightningBolt').each(function() {
-                    if (isIntersecting(Birdy.selectorObject, $(this))) {
-                        currentMana -= 5;
-                        hitSound.play();
-                        ohSound.currentTime = 0;
-                        ohSound.play();
-                        $(this).remove();
-                    }
-                });
-
-                $('.LightningWall').each(function() {
-                    if (isIntersecting(Birdy.selectorObject, $(this))) {
-                        const birdTop = Birdy.getTopPercent();
-                        const { gapTop, gapHeight } = $(this).data();
-                        if (birdTop < gapTop || birdTop > gapTop + gapHeight) {
-                            currentMana -= 30;
-                            hitSound.play();
-                            ohSound.currentTime = 0;
-                            ohSound.play();
-                        }
-                    }
-                });
-
-                $('.Kolkar').each(function() {
-                    if (isIntersecting(Birdy.selectorObject, $(this))) {
-                        currentMana -= 34;
-                        hitSound.play();
-                        ohSound.currentTime = 0;
-                        ohSound.play();
-                        $(this).remove();
-                    }
-                });
-
-                $('.Coin, .LightningBolt, .LightningWall, .Kolkar').filter((_, el) => $(el).offset().left < -$(el).width()).remove();
-            }
-
-            // Utility functions
-            function isIntersecting(obj1, obj2) {
-                const o1 = obj1[0].getBoundingClientRect();
-                const o2 = obj2[0].getBoundingClientRect();
-                return !(o1.bottom < o2.top || o1.top > o2.bottom || o1.right < o2.left || o1.left > o2.right);
-            }
-
-            function clamp(value, min, max) {
-                return Math.max(min, Math.min(max, value));
-            }
-
-            function setCookie(name, value, days) {
-                const d = new Date();
-                d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000));
-                document.cookie = `${name}=${value}; expires=${d.toUTCString()}; path=/`;
-            }
-
-            function getCookie(name) {
-                return document.cookie.split('; ').reduce((acc, cookie) => {
-                    const [key, val] = cookie.split('=');
-                    return key === name ? val : acc;
-                }, '');
-            }
-
-            // Event handlers
-            canvasObject.on('mousedown', e => {
-                e.preventDefault();
-                Birdy.jump();
-            });
-
-            $(document).on('keydown', e => {
-                if (e.which === 32) {
-                    if (Lost) resetGame();
-                }
-                if (e.which === 80) togglePause();
-            });
-
-            $('#PauseButton').on('mousedown', e => {
-                e.stopPropagation();
-                e.preventDefault();
-                togglePause();
-            });
-
-            $('#ResetButton').on('click', resetGame);
-
-            // Preload chaser image
-            const chaserImg = new Image();
-            chaserImg.src = 'main/chaser.JPG';
-            chaserImg.onload = () => console.log('Chaser image loaded successfully');
-            chaserImg.onerror = () => console.error('Failed to
+        // Initialize Game
+        createBackground();
+        createPlayer();
+        createChaser();
+    </script>
+</body>
+</html>
