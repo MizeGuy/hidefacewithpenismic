@@ -353,21 +353,21 @@
 
     // oh.mp3 (75% quieter => volume=0.25)
     var ohSound = new Audio('main/oh.mp3');
-    ohSound.volume = 0.03;
+    ohSound.volume = 0.01;
 
     // jammer.mp3 (50% quieter => volume=0.5), loops, fade in over 10s
     var jammerSound = new Audio('main/jammer.mp3');
     jammerSound.loop = true;
-    jammerSound.volume = 0.15;
+    jammerSound.volume = 0.1;
     var jammerFadeInterval = null;
 
     // nowaybro.mp3 for losing
     var nowaybroSound = new Audio('main/nowaybro.mp3');
-    nowaybroSound.volume = 0.2;
+    nowaybroSound.volume = 0.1;
 
     // LightningShieldImpact.ogg for Kolkar charge (first 2 seconds at 0.4 volume)
     var impactSound = new Audio('main/LightningShieldImpact.ogg');
-    impactSound.volume = 0.03;
+    impactSound.volume = 0.01;
 
     // BIRD (PLAYER)
     var Birdy = new (function(){
@@ -375,7 +375,7 @@
       var jumping         = false;
       var gravVeloc       = 0;
       var gravAccel       = 0.3;
-      var terminalVelocity= 5;
+      var terminalVelocity= 10;
       var Angle           = 0;
 
       this.Reset = function(){
@@ -702,10 +702,10 @@
         if(isIntersecting(Birdy.BirdyObject, $(this))){
           $(this).remove();
           // 5% speed boost => pipeDuration *= 0.95
-          pipeDuration = pipeDuration * 0.85;
+          pipeDuration = pipeDuration * 0.75;
 
           // slow chaser further
-          chaseSpeed -= 0.005;
+          chaseSpeed -= 0.01;
           if(chaseSpeed < 0) chaseSpeed = 0;
 
           // show swipe gif for 2.5s
