@@ -21,7 +21,7 @@
       position: relative;
       width: 100%;
       height: 100%;
-      cursor: default; /* Prevent cursor changes */
+      cursor: default;
     }
 
     /* HEADER */
@@ -123,7 +123,7 @@
     .noSelect {
       user-select: none;
       -webkit-user-select: none;
-      pointer-events: none; /* Prevent interaction with text */
+      pointer-events: none;
     }
     #CurrentScoreCard {
       position: relative;
@@ -136,37 +136,40 @@
       z-index: 50;
     }
     #LostScoreScreen {
-      position: absolute; /* Changed to absolute for proper centering */
+      position: absolute;
       left: 50%;
       top: 50%;
-      transform: translate(-50%, -50%); /* Center both vertically and horizontally */
-      padding: 1vw 1.5vw;
+      transform: translate(-50%, -50%);
+      padding: 1.5vw 2vw;
       background: #ded895;
-      border-radius: 0.4vw;
+      border-radius: 0.8vw;
       border: 0.2vw solid black;
       text-align: center;
       display: none;
-      font-size: 2vw;
-      color: white;
-      text-shadow: -0.2vw -0.2vw 0 #000, 0.2vw -0.2vw 0 #000, -0.2vw 0.2vw 0 #000, 0.2vw 0.2vw 0 #000;
+      font-size: 1.8vw;
+      color: #000;
+      text-shadow: none; /* Removed glitchy text-shadow */
       z-index: 150;
-      width: 30vw; /* Responsive width */
-      max-width: 400px;
-      min-width: 200px;
+      width: 35vw;
+      max-width: 450px;
+      min-width: 250px;
     }
     #CurrentScore, #FinalScore, #BestScore {
       font-weight: bold;
+      font-size: 2.5vw; /* Larger, bold score numbers for emphasis */
     }
 
     /* EXTRA TEXT */
     #ExtraText {
-      margin-top: 1vh;
+      margin-top: 1.5vh;
       font-size: 1.2vw;
       color: #222;
+      line-height: 1.4; /* Improved line spacing for readability */
+      white-space: normal; /* Ensure text wraps properly */
     }
     #ExtraText strong, #ExtraText span {
       display: block;
-      margin-bottom: 0.5vh;
+      margin-bottom: 0.8vh;
     }
 
     /* PAUSE BUTTON */
@@ -184,7 +187,7 @@
       z-index: 50;
       cursor: pointer;
       padding: 0.8vh 0;
-      pointer-events: auto; /* Ensure clickable */
+      pointer-events: auto;
     }
 
     /* DEBUG INFO */
@@ -207,10 +210,12 @@
     /* RESET BUTTON */
     button {
       font-size: 1.5vw;
-      border: none;
+      border: 0.2vw solid #000;
       border-radius: 0.6vw;
-      padding: 0.6vh 1.2vw;
+      padding: 0.8vh 1.5vw;
       cursor: pointer;
+      background: #fff;
+      margin-top: 1vh;
     }
     button:hover {
       background: #f0f0f0;
@@ -549,22 +554,22 @@
       $('#InstructionBox').slideDown(); setTimeout(() => $('#InstructionBox').slideUp(), 4000);
       nextKolkarSpawn = getKolkarSpawnTime();
       canvasObject.mousedown(function(e){
-        e.preventDefault(); // Prevent default browser actions (context menu, etc.)
+        e.preventDefault();
         Birdy.jump();
       });
       canvasObject.on('contextmenu', function(e){
-        e.preventDefault(); // Disable right-click context menu
+        e.preventDefault();
       });
       $('body').keydown(function(e){
         if(e.which === 32) resetGame();
         if(e.which === 80) togglePause();
       });
       $('#PauseButton').mousedown(function(e){
-        e.stopPropagation(); e.preventDefault(); // Ensure pause button works without interference
+        e.stopPropagation(); e.preventDefault();
         togglePause();
       });
       $('#ResetButton').click(function(e){
-        e.preventDefault(); // Prevent any form-like behavior
+        e.preventDefault();
         resetGame();
       });
       startGame();
