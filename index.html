@@ -154,7 +154,7 @@
             background: linear-gradient(0deg, transparent, #00b7eb, transparent);
             opacity: 0.5;
             z-index: 145;
-            animation: boltFade 1s linear;
+            animation: boltFade 2s linear; /* Slower for readability */
             box-shadow: 0 0 5px #00b7eb;
         }
         .LightningBolt span {
@@ -255,19 +255,19 @@
             position: absolute;
             top: 40%;
             left: 10%;
-            width: 10vw;
-            height: 10vh;
-            max-width: 125px;
-            max-height: 125px;
-            min-width: 40px;
-            min-height: 40px;
+            width: 15vw; /* Increased size */
+            height: 15vh;
+            max-width: 200px;
+            max-height: 200px;
+            min-width: 60px;
+            min-height: 60px;
             background-image: url('main/chaser.JPG');
             background-size: cover;
             background-position: center;
-            background-color: #ff00ff; /* Fallback color if image fails */
+            background-color: #ff00ff; /* Fallback color */
             z-index: 100;
             filter: drop-shadow(0 0 8px #ff00ff);
-            border: 2px solid #ff00ff; /* Temporary border to confirm visibility */
+            border: 2px solid #ff00ff; /* Temporary visibility aid */
         }
 
         .Kolkar {
@@ -333,8 +333,8 @@
             let coinStackTimers = [];
 
             // Chaser variables
-            let baseChaseSpeed = 0.15;
-            const minChaseSpeed = 0.05;
+            let baseChaseSpeed = 0.12; // 20% slower
+            const minChaseSpeed = 0.04; // 20% slower
             const playerSpeed = 0.2;
             let permanentSpeedIncrease = 0;
 
@@ -426,7 +426,7 @@
                 Lost = false;
                 CurrentScore = 0;
                 gameLoopCounter = 0;
-                baseChaseSpeed = 0.15;
+                baseChaseSpeed = 0.12;
                 permanentSpeedIncrease = 0;
                 coinStacks = 0;
                 coinStackTimers = [];
@@ -468,7 +468,7 @@
                 $('#ManaBar').css('width', (currentMana / maxMana * 100) + '%');
                 if (currentMana <= 0 && !stunned) {
                     stunned = true;
-                    stunDuration = 67; // 2 seconds at ~30ms per frame
+                    stunDuration = 67; // 2 seconds
                     Birdy.selectorObject.addClass('stunned');
                     hitSound.play();
                     ohSound.currentTime = 0;
@@ -491,7 +491,7 @@
                     })
                     .append(`<span>${label}</span>`)
                     .appendTo(canvasObject);
-                bolt.animate({ left: Birdy.selectorObject.offset().left + (Math.random() - 0.5) * 200 }, 1000, 'linear', function() { $(this).remove(); });
+                bolt.animate({ left: Birdy.selectorObject.offset().left + (Math.random() - 0.5) * 200 }, 2000, 'linear', function() { $(this).remove(); }); // Slower for readability
                 lightningSound.currentTime = 0;
                 lightningSound.play();
             }
@@ -530,7 +530,7 @@
                     const diff = birdTop - chaseTop;
                     
                     $('#Chaser').css({
-                        left: clamp(newChaseLeft, 0, 49) + '%', // Always visible on left side
+                        left: clamp(newChaseLeft, 0, 49) + '%',
                         top: (chaseTop + diff * 0.05) + '%'
                     });
 
@@ -573,7 +573,7 @@
 
                 checkCollisions();
                 currentMana -= 0.08;
-                permanentSpeedIncrease += 0.00001;
+                permanentSpeedIncrease += 0.000008; // 20% slower increase
                 updateManaBar();
                 gameLoopCounter++;
             }
@@ -676,8 +676,4 @@
             const chaserImg = new Image();
             chaserImg.src = 'main/chaser.JPG';
             chaserImg.onload = () => console.log('Chaser image loaded successfully');
-            chaserImg.onerror = () => console.error('Failed to load chaser.JPG - check path or filename');
-        });
-    </script>
-</body>
-</html>
+            chaserImg.onerror = () => console.error('Failed to
