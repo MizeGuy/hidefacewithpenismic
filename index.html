@@ -236,7 +236,6 @@
       background-size: cover;
       background-position: center;
       z-index: 100;
-      outline: 0.2vw solid purple;
     }
 
     /* SWIPE GIF */
@@ -449,7 +448,7 @@
 
       /* PINE TREES */
       function addPipe(){
-        var PipeGap = 45, MinPipeHeight = 5, MaxTopHeight = 90 - PipeGap - 2*MinPipeHeight;
+        var PipeGap = 70, MinPipeHeight = 5, MaxTopHeight = 85 - PipeGap - 2*MinPipeHeight;
         var TopPipeHeight = Math.random()*MaxTopHeight + MinPipeHeight;
         var BottomTop = TopPipeHeight + PipeGap, BottomHeight = 90 - BottomTop;
         $('<div/>').addClass('Pipe TopPipe').css({ height: TopPipeHeight + '%', animation: 'PipeMovement ' + pipeDuration + 's linear' }).data('scored', false).appendTo(canvasObject);
