@@ -339,7 +339,7 @@
     var gameLoopCounter    = 0;
 
     /* Speed for newly spawned pipes/coins */
-    var pipeDuration = 10;
+    var pipeDuration = 20;
 
     /* CHASER Data */
     var chaseX = -10;
@@ -494,7 +494,7 @@
     }
 
     // 15% less frequent obstacles => was 90 loops => now ~104 loops
-    var pipeSpawnInterval = 85;
+    var pipeSpawnInterval = 55;
 
     // COIN spawn logic => every 44 loops offset 22
     var coinSpawnInterval = 44;
@@ -534,8 +534,8 @@
     // random spawn every 15-20s => ~15-20s * 33 loops/s => ~495-660 loops
     var nextKolkarSpawn = 0;
     function getKolkarSpawnTime(){
-      var minLoop = 125; // 15s
-      var maxLoop = 260; // 20s
+      var minLoop = 75; // 15s
+      var maxLoop = 155; // 20s
       var range   = maxLoop - minLoop;
       var offset  = Math.floor(Math.random() * range) + minLoop;
       return gameLoopCounter + offset;
@@ -702,7 +702,7 @@
         if(isIntersecting(Birdy.BirdyObject, $(this))){
           $(this).remove();
           // 5% speed boost => pipeDuration *= 0.95
-          pipeDuration = pipeDuration * 0.95;
+          pipeDuration = pipeDuration * 0.85;
 
           // slow chaser further
           chaseSpeed -= 0.005;
