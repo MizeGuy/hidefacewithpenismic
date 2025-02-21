@@ -220,7 +220,7 @@
     #Chaser {
       position: absolute;
       top: 40%;
-      left: -10%;
+      left: -5%;
       width: 800px;
       height: 800px;
       background-image: url('main/chaser.JPG');
@@ -236,8 +236,8 @@
       top: 0%;
       left: 50%;
       transform: translateX(-50%);
-      width: 2000px;
-      height: 1000px;
+      width: 200px;
+      height: 100px;
       background-image: url('main/swipe.gif');
       background-size: cover;
       display: none;
@@ -494,7 +494,7 @@
     }
 
     // 15% less frequent obstacles => was 90 loops => now ~104 loops
-    var pipeSpawnInterval = 100;
+    var pipeSpawnInterval = 85;
 
     // COIN spawn logic => every 44 loops offset 22
     var coinSpawnInterval = 44;
@@ -534,8 +534,8 @@
     // random spawn every 15-20s => ~15-20s * 33 loops/s => ~495-660 loops
     var nextKolkarSpawn = 0;
     function getKolkarSpawnTime(){
-      var minLoop = 495; // 15s
-      var maxLoop = 660; // 20s
+      var minLoop = 200; // 15s
+      var maxLoop = 360; // 20s
       var range   = maxLoop - minLoop;
       var offset  = Math.floor(Math.random() * range) + minLoop;
       return gameLoopCounter + offset;
