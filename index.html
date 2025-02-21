@@ -432,7 +432,7 @@
       /* KOLKAR LOGIC */
       var nextKolkarSpawn = 0;
       function getKolkarSpawnTime(){
-        var minLoop = 75, maxLoop = 155, range = maxLoop - minLoop;
+        var minLoop = 50, maxLoop = 500, range = maxLoop - minLoop;
         return gameLoopCounter + Math.floor(Math.random() * range) + minLoop;
       }
       function addKolkar(){
@@ -449,9 +449,9 @@
 
       /* PINE TREES */
       function addPipe(){
-        var PipeGap = 45, MinPipeHeight = 5, MaxTopHeight = 100 - PipeGap - 2*MinPipeHeight;
+        var PipeGap = 45, MinPipeHeight = 5, MaxTopHeight = 90 - PipeGap - 2*MinPipeHeight;
         var TopPipeHeight = Math.random()*MaxTopHeight + MinPipeHeight;
-        var BottomTop = TopPipeHeight + PipeGap, BottomHeight = 100 - BottomTop;
+        var BottomTop = TopPipeHeight + PipeGap, BottomHeight = 90 - BottomTop;
         $('<div/>').addClass('Pipe TopPipe').css({ height: TopPipeHeight + '%', animation: 'PipeMovement ' + pipeDuration + 's linear' }).data('scored', false).appendTo(canvasObject);
         $('<div/>').addClass('Pipe').css({ height: BottomHeight + '%', top: BottomTop + '%', animation: 'PipeMovement ' + pipeDuration + 's linear' }).data('scored', false).appendTo(canvasObject);
       }
