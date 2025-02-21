@@ -259,13 +259,15 @@
             height: 10vh;
             max-width: 125px;
             max-height: 125px;
-            min-width: 40px; /* Ensure visibility even if small */
+            min-width: 40px;
             min-height: 40px;
-            background-image: url('main/chaser.JPG'); /* Exact case match */
+            background-image: url('main/chaser.JPG');
             background-size: cover;
-            background-position: center; /* Consistent with player */
+            background-position: center;
+            background-color: #ff00ff; /* Fallback color if image fails */
             z-index: 100;
             filter: drop-shadow(0 0 8px #ff00ff);
+            border: 2px solid #ff00ff; /* Temporary border to confirm visibility */
         }
 
         .Kolkar {
@@ -466,7 +468,7 @@
                 $('#ManaBar').css('width', (currentMana / maxMana * 100) + '%');
                 if (currentMana <= 0 && !stunned) {
                     stunned = true;
-                    stunDuration = 50;
+                    stunDuration = 67; // 2 seconds at ~30ms per frame
                     Birdy.selectorObject.addClass('stunned');
                     hitSound.play();
                     ohSound.currentTime = 0;
@@ -528,7 +530,7 @@
                     const diff = birdTop - chaseTop;
                     
                     $('#Chaser').css({
-                        left: clamp(newChaseLeft, 0, 49) + '%',
+                        left: clamp(newChaseLeft, 0, 49) + '%', // Always visible on left side
                         top: (chaseTop + diff * 0.05) + '%'
                     });
 
@@ -548,6 +550,7 @@
                     if (stunDuration <= 0) {
                         stunned = false;
                         Birdy.selectorObject.removeClass('stunned');
+                        currentMana = maxMana * 0.1; // Regain 10% mana
                     }
                 }
 
@@ -669,11 +672,11 @@
 
             $('#ResetButton').on('click', resetGame);
 
-            // Preload chaser image to ensure visibility
+            // Preload chaser image
             const chaserImg = new Image();
             chaserImg.src = 'main/chaser.JPG';
-            chaserImg.onload = () => console.log('Chaser image loaded');
-            chaserImg.onerror = () => console.error('Failed to load chaser.JPG');
+            chaserImg.onload = () => console.log('Chaser image loaded successfully');
+            chaserImg.onerror = () => console.error('Failed to load chaser.JPG - check path or filename');
         });
     </script>
 </body>
