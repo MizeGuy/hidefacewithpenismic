@@ -1,578 +1,559 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Flappy Bird with Coins (Pine Tree Obstacles, Swipe Gif, & Kolkar)</title>
-  <style>
-    /* RESET & LAYOUT */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    html, body {
-      width: 100%;
-      height: 100%;
-      background: url('main/brill.png') no-repeat center center;
-      background-size: cover;
-      overflow: hidden;
-    }
-    #Canvas {
-      position: relative;
-      width: 100%;
-      height: 100%;
-      cursor: default;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lightning Chase Survival</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        html, body {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+        #Canvas {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            cursor: default;
+        }
 
-    /* HEADER */
-    #Header {
-      position: absolute;
-      top: 1vh;
-      left: 50%;
-      transform: translateX(-50%);
-      color: rgb(255, 0, 0);
-      font-weight: bold;
-      text-decoration: underline;
-      font-size: 1.5vw;
-      z-index: 9999;
-    }
+        #ManaBarContainer {
+            position: absolute;
+            top: 2vh;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50vw;
+            height: 3vh;
+            background: rgba(0,0,0,0.7);
+            border: 2px solid #00ffff;
+            border-radius: 15px;
+            overflow: hidden;
+            z-index: 200;
+        }
+        #ManaBar {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, #00ffff, #00b7eb);
+            transition: width 0.3s ease;
+            box-shadow: 0 0 10px #00ffff;
+        }
 
-    /* PLAYER (Birdy) */
-    #Birdy {
-      position: absolute;
-      top: 40%;
-      left: 20%;
-      width: 15vw;
-      height: 8.44vh;
-      max-width: 200px;
-      max-height: 112px;
-      min-width: 50px;
-      min-height: 28px;
-      background-image: url('main/player.avif');
-      background-size: cover;
-      background-position: center;
-      z-index: 150;
-    }
-    .FallenBirdy {
-      transform: rotate(90deg);
-    }
+        #Header {
+            position: absolute;
+            top: 6vh;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #00ffff;
+            font-weight: bold;
+            font-size: 1.5vw;
+            text-shadow: 0 0 5px #00ffff;
+            z-index: 9999;
+        }
 
-    /* COINS */
-    .Coin {
-      position: absolute;
-      width: 10vw;
-      height: 7.65vh;
-      max-width: 150px;
-      max-height: 115px;
-      min-width: 40px;
-      min-height: 30px;
-      background-image: url('main/boostlogo.png');
-      background-repeat: no-repeat;
-      background-size: cover;
-      left: 100%;
-      z-index: 140;
-      animation-timing-function: linear;
-    }
+        #Birdy {
+            position: absolute;
+            top: 40%;
+            left: 20%;
+            width: 15vw;
+            height: 8.44vh;
+            max-width: 200px;
+            max-height: 112px;
+            min-width: 50px;
+            min-height: 28px;
+            background-image: url('main/player.avif');
+            background-size: cover;
+            z-index: 150;
+            transition: transform 0.1s ease;
+        }
+        .stunned {
+            filter: brightness(0.5) blur(2px);
+            animation: shake 0.2s infinite;
+        }
+        @keyframes shake {
+            0% { transform: translate(2px, 1px); }
+            50% { transform: translate(-2px, -1px); }
+            100% { transform: translate(2px, 1px); }
+        }
 
-    /* PINE TREE OBSTACLES */
-    .Pipe {
-      position: absolute;
-      top: 0;
-      left: 100%;
-      width: 5vw;
-      max-width: 80px;
-      min-width: 20px;
-      background: linear-gradient(to bottom, #228B22 0%, #228B22 90%, #8B4513 90%, #8B4513 100%);
-      border: 0.2vw solid #444;
-      border-radius: 0.6vw;
-      animation-timing-function: linear;
-    }
-    .TopPipe {
-      transform: rotate(180deg);
-    }
+        .Coin {
+            position: absolute;
+            width: 8vw;
+            height: 6vh;
+            max-width: 120px;
+            max-height: 90px;
+            background-image: url('main/boostlogo.png');
+            background-size: cover;
+            left: 100%;
+            z-index: 140;
+            animation: CoinMovement 5s linear, glow 1s infinite alternate;
+        }
+        @keyframes glow {
+            from { box-shadow: 0 0 5px gold; }
+            to { box-shadow: 0 0 15px gold; }
+        }
 
-    @keyframes PipeMovement {
-      from { left: 100%; }
-      to   { left: -25%; }
-    }
-    @keyframes CoinMovement {
-      from { left: 100%; }
-      to   { left: -10%; }
-    }
-    .paused {
-      animation-play-state: paused;
-    }
+        .LightningBolt {
+            position: absolute;
+            width: 5vw;
+            height: 20vh;
+            background: linear-gradient(0deg, transparent, #00ffff, transparent);
+            opacity: 0.7;
+            z-index: 145;
+            animation: boltFade 0.5s linear;
+            box-shadow: 0 0 10px #00ffff;
+        }
+        .LightningWall {
+            position: absolute;
+            width: 8vw;
+            height: 100vh;
+            left: 100%;
+            background: repeating-linear-gradient(0deg, #00ffff 0%, #00ffff 10%, transparent 10%, transparent 20%);
+            opacity: 0.8;
+            z-index: 148;
+            animation: WallMovement 4s linear;
+            box-shadow: 0 0 15px #00ffff;
+        }
+        @keyframes WallMovement { from { left: 100%; } to { left: -10%; } }
+        @keyframes CoinMovement { from { left: 100%; } to { left: -10%; } }
+        @keyframes boltFade { 0% { opacity: 0.7; } 100% { opacity: 0; } }
 
-    /* SCORE & INSTRUCTIONS */
-    #InstructionBox {
-      position: absolute;
-      left: 50%;
-      top: 35%;
-      display: none;
-    }
-    #InstructionBox div {
-      position: relative;
-      left: -50%;
-      z-index: 150;
-      color: white;
-      font-size: 2vw;
-      background: rgba(0,0,0,0.3);
-      padding: 1vw 2vw;
-      border-radius: 0.8vw;
-    }
-    .noSelect {
-      user-select: none;
-      -webkit-user-select: none;
-      pointer-events: none;
-    }
-    #CurrentScoreCard {
-      position: relative;
-      left: -50%;
-      top: 40%;
-      text-align: center;
-      font-size: 4vw;
-      color: white;
-      text-shadow: -0.2vw -0.2vw 0 #000, 0.2vw -0.2vw 0 #000, -0.2vw 0.2vw 0 #000, 0.2vw 0.2vw 0 #000;
-      z-index: 50;
-    }
-    #LostScoreScreen {
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%);
-      padding: 1.5vw 2vw;
-      background: #ded895;
-      border-radius: 0.8vw;
-      border: 0.2vw solid black;
-      text-align: center;
-      display: none;
-      font-size: 1.8vw;
-      color: #000;
-      text-shadow: none; /* Removed glitchy text-shadow */
-      z-index: 150;
-      width: 35vw;
-      max-width: 450px;
-      min-width: 250px;
-    }
-    #CurrentScore, #FinalScore, #BestScore {
-      font-weight: bold;
-      font-size: 2.5vw; /* Larger, bold score numbers for emphasis */
-    }
+        #CurrentScoreCard {
+            position: absolute;
+            left: 2vw;
+            top: 2vh;
+            font-size: 2vw;
+            color: #00ffff;
+            text-shadow: 0 0 5px #00ffff;
+            z-index: 50;
+            pointer-events: none;
+        }
 
-    /* EXTRA TEXT */
-    #ExtraText {
-      margin-top: 1.5vh;
-      font-size: 1.2vw;
-      color: #222;
-      line-height: 1.4; /* Improved line spacing for readability */
-      white-space: normal; /* Ensure text wraps properly */
-    }
-    #ExtraText strong, #ExtraText span {
-      display: block;
-      margin-bottom: 0.8vh;
-    }
+        #LostScoreScreen {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            padding: 2vw;
+            background: rgba(0,0,0,0.8);
+            border: 2px solid #00ffff;
+            border-radius: 10px;
+            text-align: center;
+            display: none;
+            font-size: 1.8vw;
+            color: #00ffff;
+            z-index: 150;
+            width: 35vw;
+            max-width: 450px;
+            box-shadow: 0 0 20px #00ffff;
+        }
+        #FinalScore, #BestScore {
+            font-weight: bold;
+            font-size: 2.5vw;
+            text-shadow: 0 0 10px #00ffff;
+        }
+        #ResetButton {
+            background: #00ffff;
+            border: none;
+            padding: 1vh 2vw;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.5vw;
+            color: #1a1a2e;
+            transition: transform 0.2s;
+        }
+        #ResetButton:hover {
+            transform: scale(1.05);
+        }
 
-    /* PAUSE BUTTON */
-    #PauseButton {
-      position: absolute;
-      top: 2vh;
-      right: 1vw;
-      width: 3vw;
-      max-width: 40px;
-      min-width: 20px;
-      background: orange;
-      border-radius: 0.5vw;
-      font-size: 2.6vw;
-      text-align: center;
-      z-index: 50;
-      cursor: pointer;
-      padding: 0.8vh 0;
-      pointer-events: auto;
-    }
+        #PauseButton {
+            position: absolute;
+            top: 2vh;
+            right: 1vw;
+            width: 3vw;
+            max-width: 40px;
+            background: #00ffff;
+            border-radius: 0.5vw;
+            font-size: 2vw;
+            text-align: center;
+            z-index: 50;
+            cursor: pointer;
+            padding: 0.5vh 0;
+            box-shadow: 0 0 10px #00ffff;
+            transition: transform 0.2s;
+        }
+        #PauseButton:hover {
+            transform: scale(1.1);
+        }
 
-    /* DEBUG INFO */
-    #DebugInfo {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 10vw;
-      height: 20vh;
-      max-width: 150px;
-      max-height: 250px;
-      z-index: 25;
-      background: gray;
-      opacity: 0.7;
-      color: white;
-      display: none;
-      padding: 0.4vw;
-    }
+        #Chaser {
+            position: absolute;
+            top: 40%;
+            left: -5%;
+            width: 20vw;
+            height: 20vh;
+            max-width: 250px;
+            max-height: 250px;
+            background-image: url('main/chaser.JPG');
+            background-size: cover;
+            z-index: 100;
+            filter: drop-shadow(0 0 10px #ff00ff);
+        }
 
-    /* RESET BUTTON */
-    button {
-      font-size: 1.5vw;
-      border: 0.2vw solid #000;
-      border-radius: 0.6vw;
-      padding: 0.8vh 1.5vw;
-      cursor: pointer;
-      background: #fff;
-      margin-top: 1vh;
-    }
-    button:hover {
-      background: #f0f0f0;
-    }
-
-    /* CHASER */
-    #Chaser {
-      position: absolute;
-      top: 40%;
-      left: -5%;
-      width: 25vw;
-      height: 25vh;
-      max-width: 300px;
-      max-height: 300px;
-      min-width: 100px;
-      min-height: 100px;
-      background-image: url('main/chaser.JPG');
-      background-size: cover;
-      background-position: center;
-      z-index: 100;
-    }
-
-    /* SWIPE GIF */
-    #SwipeGif {
-      position: absolute;
-      top: 1vh;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 15vw;
-      height: 5vh;
-      max-width: 200px;
-      max-height: 100px;
-      background-image: url('main/swipe.gif');
-      background-size: cover;
-      display: none;
-      z-index: 999;
-    }
-
-    /* KOLKAR */
-    .Kolkar {
-      position: absolute;
-      top: 40%;
-      left: 100%;
-      width: 25vw;
-      height: 21.875vh;
-      max-width: 300px;
-      max-height: 262px;
-      min-width: 100px;
-      min-height: 87px;
-      background-image: url('main/kolkar.png');
-      background-size: cover;
-      background-position: center;
-      z-index: 160;
-      animation-timing-function: linear;
-    }
-
-    @keyframes KolkarMovement {
-      from { left: 100%; }
-      to   { left: -15%; }
-    }
-  </style>
+        .Kolkar {
+            position: absolute;
+            width: 20vw;
+            height: 17.5vh;
+            max-width: 250px;
+            max-height: 218px;
+            background-image: url('main/kolkar.png');
+            background-size: cover;
+            left: 100%;
+            z-index: 160;
+            animation: KolkarMovement 5s linear;
+        }
+        @keyframes KolkarMovement { from { left: 100%; } to { left: -15%; } }
+        .paused { animation-play-state: paused; }
+    </style>
 </head>
 <body>
-  <div id="Header">Made By TheMizeGuy</div>
-  <div id="Canvas">
-    <div id="InstructionBox">
-      <div class="noSelect">Click to Fly<br>Space Bar to Reset<br>"P" to Pause</div>
+    <div id="ManaBarContainer"><div id="ManaBar"></div></div>
+    <div id="Header">Made By TheMizeGuy</div>
+    <div id="Canvas">
+        <div id="CurrentScoreCard" class="noSelect"><span id="CurrentScore">0</span></div>
+        <div id="LostScoreScreen" class="noSelect">
+            <span>Distance Survived</span><br><span id="FinalScore">0</span><br>
+            <span>Best</span><br><span id="BestScore">0</span><br><br>
+            <button id="ResetButton" type="button">Reset</button>
+        </div>
+        <div id="Birdy"></div>
+        <div id="PauseButton" class="noSelect">||</div>
+        <div id="Chaser"></div>
     </div>
-    <div style="position: absolute; left: 50%; top: 50%;">
-      <div id="CurrentScoreCard" class="noSelect"><span id="CurrentScore">0</span></div>
-    </div>
-    <div id="LostScoreScreen" class="noSelect">
-      <span>Score</span><br><span id="FinalScore">0</span><br>
-      <span>Best</span><br><span id="BestScore">0</span><br><br>
-      <button id="ResetButton" type="button">Reset</button>
-      <div id="ExtraText">
-        <strong>FlappyCuck</strong>
-        <span>Left click to jump</span>
-        <span>Collect that G2G delivery to slow down the ROACH!</span>
-        <span>Special surprise at 50 points!</span>
-      </div>
-    </div>
-    <div id="DebugInfo" class="noSelect"></div>
-    <div id="Birdy"></div>
-    <div id="PauseButton" class="noSelect">||</div>
-    <div id="Chaser"></div>
-    <div id="SwipeGif"></div>
-  </div>
 
-  <script src="main/jquery.min.js"></script>
-  <script>
-    $(function(){
-      /* CORE VARS */
-      var canvasObject = $('#Canvas');
-      var gameLoopIntervalID = 0;
-      var Paused = true;
-      var Lost = false;
-      var CurrentScore = 0;
-      var gameLoopCounter = 0;
-      var pipeDuration = 20;
-      var chaseX = -10;
-      var chaseSpeed = 0.027;
-      var chaseTop = 40;
-      var chaseTrackFactor = 0.05;
+    <script src="main/jquery.min.js"></script>
+    <script>
+        $(function() {
+            // Core game variables
+            const canvasObject = $('#Canvas');
+            let gameLoopIntervalID = 0;
+            let Paused = true;
+            let Lost = false;
+            let CurrentScore = 0;
+            let gameLoopCounter = 0;
+            const basePlayerSpeed = 0.25;
+            let baseChaseSpeed = 0.2;
+            const maxMana = 100;
+            let currentMana = maxMana;
+            let stunned = false;
+            let stunDuration = 0;
 
-      /* AUDIO & MUTE LOGIC */
-      var isMuted = false;
-      var flapCount = 0;
-      var ohSound = new Audio('main/oh.mp3'); ohSound.volume = 0.01;
-      var jammerSound = new Audio('main/jammer.mp3'); jammerSound.loop = true; jammerSound.volume = 0.1;
-      var jammerFadeInterval = null;
-      var nowaybroSound = new Audio('main/nowaybro.mp3'); nowaybroSound.volume = 0.1;
-      var impactSound = new Audio('main/LightningShieldImpact.ogg'); impactSound.volume = 0.01;
+            // Audio setup
+            const coinSound = new Audio('main/coin.mp3'); coinSound.volume = 0.1;
+            const lightningSound = new Audio('main/lightning.mp3'); lightningSound.volume = 0.3;
+            const hitSound = new Audio('main/hit.mp3'); hitSound.volume = 0.4;
+            const deathSound = new Audio('main/death.mp3'); deathSound.volume = 0.7;
+            const jammerSound = new Audio('main/jammer.mp3'); 
+            jammerSound.loop = true;
+            let jammerFadeInterval = null;
 
-      /* BIRD (PLAYER) */
-      var Birdy = new (function(){
-        var selectorObject = $('#Birdy');
-        var jumping = false;
-        var gravVeloc = 0;
-        var gravAccel = 0.3;
-        var terminalVelocity = 10;
-        var Angle = 0;
+            // Player object
+            const Birdy = {
+                selectorObject: $('#Birdy'),
+                gravVeloc: 0,
+                gravAccel: 0.35,
+                terminalVelocity: 12,
+                reset() {
+                    this.gravVeloc = 0;
+                    stunned = false;
+                    currentMana = maxMana;
+                    this.selectorObject.removeClass('stunned').css({ top: '40%', left: '20%' });
+                    updateManaBar();
+                },
+                fall() {
+                    if (!stunned && !Paused) {
+                        const newTop = this.getTopPercent() + this.gravVeloc;
+                        this.selectorObject.css('top', clamp(newTop, 0, 90) + '%');
+                        this.gravVeloc = Math.min(this.gravVeloc + this.gravAccel, this.terminalVelocity);
+                    }
+                },
+                jump() {
+                    if (Paused || stunned) return;
+                    this.gravVeloc = -8;
+                },
+                move() {
+                    if (!stunned && !Paused) {
+                        const currentLeft = this.getLeftPercent();
+                        this.selectorObject.css('left', (currentLeft + basePlayerSpeed) + '%');
+                    }
+                },
+                getTopPercent() { return parseFloat(this.selectorObject.css('top')) / $(window).height() * 100; },
+                getLeftPercent() { return parseFloat(this.selectorObject.css('left')) / $(window).width() * 100; }
+            };
 
-        this.Reset = function(){
-          jumping = false; gravVeloc = 0; Angle = 0; flapCount = 0;
-          selectorObject.stop().rotate(0).css({ top: '40%', left: '20%' });
-        };
-        this.fall = function(){
-          if(!jumping){
-            selectorObject.stop().animate({top: '+='+gravVeloc+'%'}, 30, 'linear');
-            gravVeloc += gravAccel;
-            if(gravVeloc > terminalVelocity) gravVeloc = terminalVelocity;
-            var newAngle = Angle + 15*Math.pow((gravVeloc/terminalVelocity),2);
-            adjustAngle(Math.min(newAngle, 90));
-          } else gravVeloc = 0;
-        };
-        this.jump = function(){
-          if(Paused) return;
-          jumping = true; flapCount++;
-          if(flapCount % 4 === 0 && !isMuted) { ohSound.currentTime = 0; ohSound.play(); }
-          adjustAngle(-45);
-          selectorObject.stop().animate({top: '-=9%'}, 100, 'linear', function(){
-            jumping = false; Birdy.fall();
-          });
-        };
-        function adjustAngle(angle){
-          selectorObject.rotate(angle); Angle = angle;
-        }
-        this.BirdyObject = selectorObject;
-      })();
+            // Game state management
+            function startGame() {
+                if (Lost) return;
+                gameLoopIntervalID = setInterval(gameLoop, 30);
+                $('.Coin, .LightningWall, .Kolkar').removeClass('paused');
+                $('#PauseButton').text('||');
+                Paused = false;
+                startJammerFade();
+            }
 
-      /* START/PAUSE/END/RESET */
-      function startGame() {
-        if(Lost) return;
-        gameLoopIntervalID = setInterval(gameLoop, 30);
-        $('.Pipe, .Coin, .Kolkar').removeClass('paused');
-        $('#PauseButton').text('||');
-        Paused = false;
-      }
-      function pauseGame() {
-        clearInterval(gameLoopIntervalID);
-        $('.Pipe, .Coin, .Kolkar').addClass('paused');
-        $('#PauseButton').text('▶');
-        Paused = true;
-      }
-      function togglePause() { if(!Paused) pauseGame(); else startGame(); }
-      function endGame() {
-        Lost = true; pauseGame();
-        var cookieScore = parseInt(getCookie('HighScore') || 0, 10);
-        var highScore = Math.max(CurrentScore, cookieScore);
-        setCookie('HighScore', highScore, 9999);
-        Birdy.BirdyObject.animate({top: '90%'}, 1500, 'linear');
-        $('#FinalScore').text(CurrentScore); $('#BestScore').text(highScore);
-        $('#LostScoreScreen').slideDown();
-        clearInterval(jammerFadeInterval); jammerFadeInterval = null;
-        jammerSound.pause(); jammerSound.currentTime = 0;
-        if(!isMuted) { nowaybroSound.currentTime = 0; nowaybroSound.play(); }
-      }
-      function resetGame() {
-        pauseGame(); $('.Pipe, .Coin, .Kolkar').remove();
-        Lost = false; CurrentScore = 0; gameLoopCounter = 0; pipeDuration = 15;
-        chaseX = -10; chaseSpeed = 0.017; chaseTop = 40;
-        $('#Chaser').css({ left: chaseX + '%', top: chaseTop + '%' });
-        clearInterval(jammerFadeInterval); jammerFadeInterval = null;
-        jammerSound.pause(); jammerSound.currentTime = 0;
-        Birdy.Reset(); $('#LostScoreScreen').slideUp();
-        nextKolkarSpawn = getKolkarSpawnTime();
-        startGame();
-      }
+            function pauseGame() {
+                clearInterval(gameLoopIntervalID);
+                $('.Coin, .LightningWall, .Kolkar').addClass('paused');
+                $('#PauseButton').text('▶');
+                Paused = true;
+                jammerSound.pause();
+            }
 
-      /* SPAWN INTERVALS */
-      var pipeSpawnInterval = 55;
-      var coinSpawnInterval = 44;
-      var coinSpawnOffset = 22;
+            function togglePause() { Paused ? startGame() : pauseGame(); }
 
-      /* JAMMER FADE IN */
-      function startJammerFadeIn(){
-        if(isMuted || Lost) return;
-        jammerSound.volume = 0; jammerSound.currentTime = 0; jammerSound.play();
-        var totalDuration = 10000, steps = 50, stepTime = totalDuration / steps, finalVol = 0.15;
-        var volIncrement = finalVol / steps;
-        clearInterval(jammerFadeInterval);
-        jammerFadeInterval = setInterval(function(){
-          if(isMuted || Lost || jammerSound.paused) {
-            clearInterval(jammerFadeInterval); jammerFadeInterval = null; return;
-          }
-          var newVol = jammerSound.volume + volIncrement;
-          if(newVol >= finalVol) { newVol = finalVol; clearInterval(jammerFadeInterval); jammerFadeInterval = null; }
-          jammerSound.volume = newVol;
-        }, stepTime);
-      }
+            function endGame() {
+                Lost = true;
+                pauseGame();
+                const highScore = Math.max(CurrentScore, parseInt(getCookie('HighScore') || 0));
+                setCookie('HighScore', highScore, 9999);
+                $('#FinalScore').text(CurrentScore);
+                $('#BestScore').text(highScore);
+                $('#LostScoreScreen').fadeIn(300);
+                deathSound.play();
+                clearInterval(jammerFadeInterval);
+                jammerSound.pause();
+            }
 
-      /* KOLKAR LOGIC */
-      var nextKolkarSpawn = 0;
-      function getKolkarSpawnTime(){
-        var minLoop = 200, maxLoop = 500, range = maxLoop - minLoop;
-        return gameLoopCounter + Math.floor(Math.random() * range) + minLoop;
-      }
-      function addKolkar(){
-        var topVal = 10 + Math.random()*60;
-        var $kolkar = $('<div/>').addClass('Kolkar').css({
-          top: topVal + '%',
-          animation: 'KolkarMovement 6s linear'
-        }).appendTo(canvasObject);
-        if(!isMuted) { impactSound.currentTime = 0; impactSound.play(); setTimeout(() => { impactSound.pause(); impactSound.currentTime = 0; }, 2000); }
-      }
-      function cleanKolkar(){
-        $('.Kolkar').each(function(){ if($(this).offset().left / $(this).parent().width() < -0.3) $(this).remove(); });
-      }
+            function resetGame() {
+                pauseGame();
+                $('.Coin, .LightningBolt, .LightningWall, .Kolkar').remove();
+                Lost = false;
+                CurrentScore = 0;
+                gameLoopCounter = 0;
+                baseChaseSpeed = 0.2;
+                $('#Chaser').css({ left: '-5%', top: '40%' });
+                Birdy.reset();
+                $('#LostScoreScreen').fadeOut(300);
+                nextLightningWallSpawn = 100;
+                nextKolkarSpawn = 150;
+                clearInterval(jammerFadeInterval);
+                jammerSound.currentTime = 0;
+                startGame();
+            }
 
-      /* PINE TREES */
-      function addPipe(){
-        var PipeGap = 70, MinPipeHeight = 5, MaxTopHeight = 85 - PipeGap - 2*MinPipeHeight;
-        var TopPipeHeight = Math.random()*MaxTopHeight + MinPipeHeight;
-        var BottomTop = TopPipeHeight + PipeGap, BottomHeight = 90 - BottomTop;
-        $('<div/>').addClass('Pipe TopPipe').css({ height: TopPipeHeight + '%', animation: 'PipeMovement ' + pipeDuration + 's linear' }).data('scored', false).appendTo(canvasObject);
-        $('<div/>').addClass('Pipe').css({ height: BottomHeight + '%', top: BottomTop + '%', animation: 'PipeMovement ' + pipeDuration + 's linear' }).data('scored', false).appendTo(canvasObject);
-      }
-      function cleanPipes(){
-        $('.Pipe').each(function(){ if($(this).offset().left / $(this).parent().width() < -0.2) $(this).remove(); });
-      }
+            // Audio management
+            function startJammerFade() {
+                jammerSound.volume = 0;
+                jammerSound.play();
+                const fadeDuration = 20000; // 20 seconds
+                const maxVolume = 0.2;
+                const steps = 100;
+                const stepTime = fadeDuration / steps;
+                const volIncrement = maxVolume / steps;
+                
+                clearInterval(jammerFadeInterval);
+                jammerFadeInterval = setInterval(() => {
+                    if (Paused || Lost) {
+                        clearInterval(jammerFadeInterval);
+                        return;
+                    }
+                    const newVol = Math.min(jammerSound.volume + volIncrement, maxVolume);
+                    jammerSound.volume = newVol;
+                    if (newVol >= maxVolume) clearInterval(jammerFadeInterval);
+                }, stepTime);
+            }
 
-      /* COINS */
-      function addCoin(){
-        var coinTop = 20 + Math.random()*6;
-        $('<div/>').addClass('Coin').css({ top: coinTop + '%', animation: 'CoinMovement ' + pipeDuration + 's linear' }).appendTo(canvasObject);
-      }
-      function cleanCoins(){
-        $('.Coin').each(function(){ if($(this).offset().left / $(this).parent().width() < -0.2) $(this).remove(); });
-      }
+            // Game elements
+            function updateManaBar() {
+                $('#ManaBar').css('width', (currentMana / maxMana * 100) + '%');
+                if (currentMana <= 0) endGame();
+            }
 
-      /* CHASER */
-      function updateChaser(){
-        if(!Lost && !Paused){
-          chaseX += chaseSpeed;
-          if(chaseX >= 20) { endGame(); return; }
-          var birdTopPercent = getTopPercent($('#Birdy'));
-          var diff = birdTopPercent - chaseTop;
-          chaseTop += chaseTrackFactor * diff;
-          $('#Chaser').css({ left: chaseX + '%', top: chaseTop + '%' });
-        }
-      }
+            function addCoin() {
+                $('<div/>').addClass('Coin').css({ top: 20 + Math.random() * 50 + '%' }).appendTo(canvasObject);
+            }
 
-      /* MAIN GAME LOOP */
-      function gameLoop(){
-        if(gameLoopCounter % 2 === 0){
-          incrementScore(); checkCollisions(); checkCoinCollisions(); checkKolkarCollisions();
-        }
-        isInBound(Birdy.BirdyObject, canvasObject); Birdy.fall();
-        if(gameLoopCounter % pipeSpawnInterval === 0) { addPipe(); cleanPipes(); }
-        if(gameLoopCounter % coinSpawnInterval === coinSpawnOffset) { addCoin(); cleanCoins(); }
-        updateChaser();
-        if(gameLoopCounter >= nextKolkarSpawn) { addKolkar(); nextKolkarSpawn = getKolkarSpawnTime(); }
-        cleanKolkar();
-        gameLoopCounter++;
-      }
+            function addLightningBolt() {
+                const chaserTop = parseFloat($('#Chaser').css('top'));
+                const bolt = $('<div/>').addClass('LightningBolt')
+                    .css({
+                        left: $('#Chaser').offset().left + $('#Chaser').width(),
+                        top: chaserTop + (Math.random() - 0.5) * 20 + '%'
+                    })
+                    .appendTo(canvasObject);
+                bolt.animate({ left: Birdy.selectorObject.offset().left }, 500, 'linear', function() { $(this).remove(); });
+                lightningSound.currentTime = 0;
+                lightningSound.play();
+            }
 
-      /* COLLISIONS */
-      function checkCollisions(){
-        $('.Pipe').each(function(){ if(isIntersecting(Birdy.BirdyObject, $(this))) endGame(); });
-      }
-      function checkCoinCollisions(){
-        $('.Coin').each(function(){
-          if(isIntersecting(Birdy.BirdyObject, $(this))){
-            $(this).remove(); pipeDuration *= 0.55; chaseSpeed -= 0.01; if(chaseSpeed < 0) chaseSpeed = 0;
-            $('#SwipeGif').show(); setTimeout(() => $('#SwipeGif').hide(), 2500);
-          }
+            let nextLightningWallSpawn = 100;
+            function addLightningWall() {
+                const gapHeight = 25;
+                const gapTop = Math.random() * (70 - gapHeight) + 10;
+                const wall = $('<div/>').addClass('LightningWall').css('top', '0%').appendTo(canvasObject);
+                wall.data({ gapTop, gapHeight });
+                lightningSound.currentTime = 0;
+                lightningSound.play();
+            }
+
+            let nextKolkarSpawn = 150;
+            function addKolkar() {
+                $('<div/>').addClass('Kolkar').css('top', 10 + Math.random() * 60 + '%').appendTo(canvasObject);
+            }
+
+            function updateChaser() {
+                if (!Lost && !Paused) {
+                    const playerLeft = Birdy.getLeftPercent();
+                    const chaseLeft = parseFloat($('#Chaser').css('left')) / $(window).width() * 100;
+                    const distanceFactor = Math.max(0, 1 - (playerLeft - chaseLeft) / 50);
+                    const adjustedChaseSpeed = baseChaseSpeed * (0.7 + 0.3 * distanceFactor);
+                    
+                    const newChaseLeft = chaseLeft + adjustedChaseSpeed;
+                    const birdTop = Birdy.getTopPercent();
+                    const chaseTop = parseFloat($('#Chaser').css('top'));
+                    const diff = birdTop - chaseTop;
+                    
+                    $('#Chaser').css({
+                        left: newChaseLeft + '%',
+                        top: (chaseTop + diff * 0.05) + '%'
+                    });
+
+                    if (isIntersecting(Birdy.selectorObject, $('#Chaser'))) endGame();
+                }
+            }
+
+            // Main game loop
+            function gameLoop() {
+                if (stunDuration > 0) {
+                    stunDuration--;
+                    if (stunDuration <= 0) Birdy.selectorObject.removeClass('stunned');
+                }
+
+                Birdy.move();
+                Birdy.fall();
+                updateChaser();
+                CurrentScore = Math.floor(gameLoopCounter / 10);
+                $('#CurrentScore').text(CurrentScore);
+
+                if (gameLoopCounter % 50 === 0) addCoin();
+                if (gameLoopCounter % 20 === 0) addLightningBolt();
+                if (gameLoopCounter >= nextLightningWallSpawn) {
+                    addLightningWall();
+                    nextLightningWallSpawn = gameLoopCounter + 80 + Math.random() * 40;
+                }
+                if (gameLoopCounter >= nextKolkarSpawn) {
+                    addKolkar();
+                    nextKolkarSpawn = gameLoopCounter + 100 + Math.random() * 50;
+                }
+
+                checkCollisions();
+                currentMana -= 0.1;
+                updateManaBar();
+                gameLoopCounter++;
+            }
+
+            // Collision detection
+            function checkCollisions() {
+                $('.Coin').each(function() {
+                    if (isIntersecting(Birdy.selectorObject, $(this))) {
+                        $(this).remove();
+                        currentMana = Math.min(maxMana, currentMana + 20);
+                        coinSound.currentTime = 0;
+                        coinSound.play();
+                    }
+                });
+
+                $('.LightningBolt').each(function() {
+                    if (isIntersecting(Birdy.selectorObject, $(this)) && !stunned) {
+                        currentMana -= 15;
+                        stunned = true;
+                        stunDuration = 20;
+                        Birdy.selectorObject.addClass('stunned');
+                        hitSound.play();
+                        $(this).remove();
+                    }
+                });
+
+                $('.LightningWall').each(function() {
+                    if (isIntersecting(Birdy.selectorObject, $(this))) {
+                        const birdTop = Birdy.getTopPercent();
+                        const { gapTop, gapHeight } = $(this).data();
+                        if (birdTop < gapTop || birdTop > gapTop + gapHeight) {
+                            currentMana -= 30;
+                            stunned = true;
+                            stunDuration = 30;
+                            Birdy.selectorObject.addClass('stunned');
+                            hitSound.play();
+                        }
+                    }
+                });
+
+                $('.Kolkar').each(function() {
+                    if (isIntersecting(Birdy.selectorObject, $(this))) {
+                        currentMana -= 40;
+                        stunned = true;
+                        stunDuration = 40;
+                        Birdy.selectorObject.addClass('stunned');
+                        hitSound.play();
+                        $(this).remove();
+                    }
+                });
+
+                $('.Coin, .LightningBolt, .LightningWall, .Kolkar').filter((_, el) => $(el).offset().left < -$(el).width()).remove();
+            }
+
+            // Utility functions
+            function isIntersecting(obj1, obj2) {
+                const o1 = obj1[0].getBoundingClientRect();
+                const o2 = obj2[0].getBoundingClientRect();
+                return !(o1.bottom < o2.top || o1.top > o2.bottom || o1.right < o2.left || o1.left > o2.right);
+            }
+
+            function clamp(value, min, max) {
+                return Math.max(min, Math.min(max, value));
+            }
+
+            function setCookie(name, value, days) {
+                const d = new Date();
+                d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000));
+                document.cookie = `${name}=${value}; expires=${d.toUTCString()}; path=/`;
+            }
+
+            function getCookie(name) {
+                return document.cookie.split('; ').reduce((acc, cookie) => {
+                    const [key, val] = cookie.split('=');
+                    return key === name ? val : acc;
+                }, '');
+            }
+
+            // Event handlers
+            canvasObject.on('mousedown', e => {
+                e.preventDefault();
+                Birdy.jump();
+            });
+
+            $(document).on('keydown', e => {
+                if (e.which === 32) resetGame();
+                if (e.which === 80) togglePause();
+            });
+
+            $('#PauseButton').on('mousedown', e => {
+                e.stopPropagation();
+                e.preventDefault();
+                togglePause();
+            });
+
+            $('#ResetButton').on('click', resetGame);
+
+            // Initialize game
+            startGame();
         });
-      }
-      function checkKolkarCollisions(){
-        $('.Kolkar').each(function(){ if(isIntersecting(Birdy.BirdyObject, $(this))) endGame(); });
-      }
-      function isIntersecting(obj1, obj2){
-        var o1 = [obj1.offset().left, obj1.offset().top, obj1.offset().left + obj1.width(), obj1.offset().top + obj1.height()];
-        var o2 = [obj2.offset().left, obj2.offset().top, obj2.offset().left + obj2.width(), obj2.offset().top + obj2.height()];
-        return !(o1[3] < o2[1] || o1[1] > o2[3] || o1[0] > o2[2] || o1[2] < o2[0]);
-      }
-      function isInBound(birdy, canvas){
-        if(birdy.offset().top + birdy.height() > canvas.height() || birdy.offset().top < 0) endGame();
-      }
-
-      /* SCORE */
-      function incrementScore(){
-        $('.Pipe').each(function(){
-          if(!$(this).hasClass('TopPipe') && !$(this).data('scored') && 
-             Birdy.BirdyObject.offset().left + Birdy.BirdyObject.width() > $(this).offset().left + $(this).width()){
-            CurrentScore++; $(this).data('scored', true);
-            if(CurrentScore === 1 && !isMuted) startJammerFadeIn();
-          }
-        });
-        $('#CurrentScore').text(CurrentScore);
-      }
-
-      /* UTILS */
-      function getTopPercent($el){
-        var parent = $el.parent(), parentTop = parent.offset().top, parentHeight = parent.height(), elTop = $el.offset().top;
-        return 100 * (elTop - parentTop) / parentHeight;
-      }
-      function setCookie(cname, cvalue, exdays){
-        var d = new Date(); d.setTime(d.getTime() + (exdays*24*60*60*1000));
-        document.cookie = cname + "=" + cvalue + "; expires=" + d.toUTCString();
-      }
-      function getCookie(cname){
-        var name = cname + "=", ca = document.cookie.split(';');
-        for(var i = 0; i < ca.length; i++) {
-          var c = ca[i].trim(); if(c.indexOf(name) === 0) return c.substring(name.length, c.length);
-        }
-        return "";
-      }
-      $.fn.rotate = function(deg){
-        return this.css({ 'transform': 'rotate('+deg+'deg)', '-webkit-transform': 'rotate('+deg+'deg)', '-moz-transform': 'rotate('+deg+'deg)' });
-      };
-
-      /* INIT */
-      $('#InstructionBox').slideDown(); setTimeout(() => $('#InstructionBox').slideUp(), 4000);
-      nextKolkarSpawn = getKolkarSpawnTime();
-      canvasObject.mousedown(function(e){
-        e.preventDefault();
-        Birdy.jump();
-      });
-      canvasObject.on('contextmenu', function(e){
-        e.preventDefault();
-      });
-      $('body').keydown(function(e){
-        if(e.which === 32) resetGame();
-        if(e.which === 80) togglePause();
-      });
-      $('#PauseButton').mousedown(function(e){
-        e.stopPropagation(); e.preventDefault();
-        togglePause();
-      });
-      $('#ResetButton').click(function(e){
-        e.preventDefault();
-        resetGame();
-      });
-      startGame();
-    });
-  </script>
+    </script>
 </body>
 </html>
