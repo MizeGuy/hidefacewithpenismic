@@ -339,7 +339,7 @@
     var gameLoopCounter    = 0;
 
     /* Speed for newly spawned pipes/coins */
-    var pipeDuration = 15;
+    var pipeDuration = 10;
 
     /* CHASER Data */
     var chaseX = -10;
@@ -353,12 +353,12 @@
 
     // oh.mp3 (75% quieter => volume=0.25)
     var ohSound = new Audio('main/oh.mp3');
-    ohSound.volume = 0.10;
+    ohSound.volume = 0.03;
 
     // jammer.mp3 (50% quieter => volume=0.5), loops, fade in over 10s
     var jammerSound = new Audio('main/jammer.mp3');
     jammerSound.loop = true;
-    jammerSound.volume = 0.25;
+    jammerSound.volume = 0.15;
     var jammerFadeInterval = null;
 
     // nowaybro.mp3 for losing
