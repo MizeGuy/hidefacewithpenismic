@@ -358,16 +358,16 @@
     // jammer.mp3 (50% quieter => volume=0.5), loops, fade in over 10s
     var jammerSound = new Audio('main/jammer.mp3');
     jammerSound.loop = true;
-    jammerSound.volume = 0.35;
+    jammerSound.volume = 0.25;
     var jammerFadeInterval = null;
 
     // nowaybro.mp3 for losing
     var nowaybroSound = new Audio('main/nowaybro.mp3');
-    nowaybroSound.volume = 0.6;
+    nowaybroSound.volume = 0.3;
 
     // LightningShieldImpact.ogg for Kolkar charge (first 2 seconds at 0.4 volume)
     var impactSound = new Audio('main/LightningShieldImpact.ogg');
-    impactSound.volume = 0.4;
+    impactSound.volume = 0.2;
 
     // BIRD (PLAYER)
     var Birdy = new (function(){
@@ -534,8 +534,8 @@
     // random spawn every 15-20s => ~15-20s * 33 loops/s => ~495-660 loops
     var nextKolkarSpawn = 0;
     function getKolkarSpawnTime(){
-      var minLoop = 200; // 15s
-      var maxLoop = 360; // 20s
+      var minLoop = 125; // 15s
+      var maxLoop = 260; // 20s
       var range   = maxLoop - minLoop;
       var offset  = Math.floor(Math.random() * range) + minLoop;
       return gameLoopCounter + offset;
