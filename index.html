@@ -431,7 +431,7 @@
       /* KOLKAR LOGIC */
       var nextKolkarSpawn = 0;
       function getKolkarSpawnTime(){
-        var minLoop = 50, maxLoop = 500, range = maxLoop - minLoop;
+        var minLoop = 200, maxLoop = 500, range = maxLoop - minLoop;
         return gameLoopCounter + Math.floor(Math.random() * range) + minLoop;
       }
       function addKolkar(){
@@ -460,7 +460,7 @@
 
       /* COINS */
       function addCoin(){
-        var coinTop = 20 + Math.random()*60;
+        var coinTop = 20 + Math.random()*6;
         $('<div/>').addClass('Coin').css({ top: coinTop + '%', animation: 'CoinMovement ' + pipeDuration + 's linear' }).appendTo(canvasObject);
       }
       function cleanCoins(){
