@@ -22,6 +22,50 @@
             width: 100%;
             height: 100%;
             cursor: default;
+            display: none;
+        }
+
+        #StartScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+        }
+        #StartButton, #TutorialButton {
+            background: #00ffff;
+            border: none;
+            padding: 2vh 4vw;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 2vw;
+            color: #1a1a2e;
+            margin: 1vh;
+            transition: transform 0.2s;
+        }
+        #StartButton:hover, #TutorialButton:hover {
+            transform: scale(1.05);
+        }
+        #Tutorial {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.9);
+            color: #00ffff;
+            padding: 2vw;
+            border-radius: 10px;
+            font-size: 1.5vw;
+            display: none;
+            z-index: 1001;
+            max-width: 50vw;
+            text-align: center;
         }
 
         #ManaBarContainer {
@@ -29,11 +73,11 @@
             top: 2vh;
             left: 50%;
             transform: translateX(-50%);
-            width: 50vw;
-            height: 3vh;
+            width: 40vw;
+            height: 2vh;
             background: rgba(0,0,0,0.7);
             border: 2px solid #00ffff;
-            border-radius: 15px;
+            border-radius: 10px;
             overflow: hidden;
             z-index: 200;
         }
@@ -42,18 +86,18 @@
             height: 100%;
             background: linear-gradient(90deg, #00ffff, #00b7eb);
             transition: width 0.3s ease;
-            box-shadow: 0 0 10px #00ffff;
+            box-shadow: 0 0 8px #00ffff;
         }
 
         #Header {
             position: absolute;
-            top: 6vh;
+            top: 5vh;
             left: 50%;
             transform: translateX(-50%);
             color: #00ffff;
             font-weight: bold;
-            font-size: 1.5vw;
-            text-shadow: 0 0 5px #00ffff;
+            font-size: 1.2vw;
+            text-shadow: 0 0 4px #00ffff;
             z-index: 9999;
         }
 
@@ -61,33 +105,33 @@
             position: absolute;
             top: 40%;
             left: 20%;
-            width: 15vw;
-            height: 8.44vh;
-            max-width: 200px;
-            max-height: 112px;
-            min-width: 50px;
-            min-height: 28px;
+            width: 8vw;
+            height: 4.5vh;
+            max-width: 100px;
+            max-height: 56px;
+            min-width: 30px;
+            min-height: 16px;
             background-image: url('main/player.avif');
             background-size: cover;
             z-index: 150;
             transition: transform 0.1s ease;
         }
         .stunned {
-            filter: brightness(0.5) blur(2px);
+            filter: brightness(0.5) blur(1px);
             animation: shake 0.2s infinite;
         }
         @keyframes shake {
-            0% { transform: translate(2px, 1px); }
-            50% { transform: translate(-2px, -1px); }
-            100% { transform: translate(2px, 1px); }
+            0% { transform: translate(1px, 0.5px); }
+            50% { transform: translate(-1px, -0.5px); }
+            100% { transform: translate(1px, 0.5px); }
         }
 
         .Coin {
             position: absolute;
-            width: 8vw;
-            height: 6vh;
-            max-width: 120px;
-            max-height: 90px;
+            width: 4vw;
+            height: 3vh;
+            max-width: 60px;
+            max-height: 45px;
             background-image: url('main/boostlogo.png');
             background-size: cover;
             left: 100%;
@@ -95,42 +139,53 @@
             animation: CoinMovement 5s linear, glow 1s infinite alternate;
         }
         @keyframes glow {
-            from { box-shadow: 0 0 5px gold; }
-            to { box-shadow: 0 0 15px gold; }
+            from { box-shadow: 0 0 3px gold; }
+            to { box-shadow: 0 0 8px gold; }
         }
 
         .LightningBolt {
             position: absolute;
-            width: 5vw;
-            height: 20vh;
-            background: linear-gradient(0deg, transparent, #00ffff, transparent);
-            opacity: 0.7;
+            width: 2vw;
+            height: 10vh;
+            background: linear-gradient(0deg, transparent, #00b7eb, transparent);
+            opacity: 0.5;
             z-index: 145;
-            animation: boltFade 0.5s linear;
-            box-shadow: 0 0 10px #00ffff;
+            animation: boltFade 1s linear;
+            box-shadow: 0 0 5px #00b7eb;
+        }
+        .LightningBolt span {
+            position: absolute;
+            top: -2vh;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-weight: bold;
+            text-decoration: underline;
+            font-size: 1vw;
+            text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
         }
         .LightningWall {
             position: absolute;
-            width: 8vw;
+            width: 6vw;
             height: 100vh;
             left: 100%;
-            background: repeating-linear-gradient(0deg, #00ffff 0%, #00ffff 10%, transparent 10%, transparent 20%);
-            opacity: 0.8;
+            background: repeating-linear-gradient(0deg, #00ffff 0%, #00ffff 15%, transparent 15%, transparent 30%);
+            opacity: 0.6;
             z-index: 148;
-            animation: WallMovement 4s linear;
-            box-shadow: 0 0 15px #00ffff;
+            animation: WallMovement 5s linear;
+            box-shadow: 0 0 10px #00ffff;
         }
         @keyframes WallMovement { from { left: 100%; } to { left: -10%; } }
         @keyframes CoinMovement { from { left: 100%; } to { left: -10%; } }
-        @keyframes boltFade { 0% { opacity: 0.7; } 100% { opacity: 0; } }
+        @keyframes boltFade { 0% { opacity: 0.5; } 100% { opacity: 0; } }
 
         #CurrentScoreCard {
             position: absolute;
             left: 2vw;
             top: 2vh;
-            font-size: 2vw;
+            font-size: 1.5vw;
             color: #00ffff;
-            text-shadow: 0 0 5px #00ffff;
+            text-shadow: 0 0 4px #00ffff;
             z-index: 50;
             pointer-events: none;
         }
@@ -140,31 +195,31 @@
             left: 50%;
             top: 50%;
             transform: translate(-50%, -50%);
-            padding: 2vw;
+            padding: 1.5vw;
             background: rgba(0,0,0,0.8);
             border: 2px solid #00ffff;
-            border-radius: 10px;
+            border-radius: 8px;
             text-align: center;
             display: none;
-            font-size: 1.8vw;
+            font-size: 1.5vw;
             color: #00ffff;
             z-index: 150;
-            width: 35vw;
-            max-width: 450px;
-            box-shadow: 0 0 20px #00ffff;
+            width: 30vw;
+            max-width: 400px;
+            box-shadow: 0 0 15px #00ffff;
         }
         #FinalScore, #BestScore {
             font-weight: bold;
-            font-size: 2.5vw;
-            text-shadow: 0 0 10px #00ffff;
+            font-size: 2vw;
+            text-shadow: 0 0 8px #00ffff;
         }
         #ResetButton {
             background: #00ffff;
             border: none;
-            padding: 1vh 2vw;
+            padding: 0.8vh 2vw;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 1.5vw;
+            font-size: 1.2vw;
             color: #1a1a2e;
             transition: transform 0.2s;
         }
@@ -176,16 +231,16 @@
             position: absolute;
             top: 2vh;
             right: 1vw;
-            width: 3vw;
-            max-width: 40px;
+            width: 2.5vw;
+            max-width: 35px;
             background: #00ffff;
-            border-radius: 0.5vw;
-            font-size: 2vw;
+            border-radius: 0.4vw;
+            font-size: 1.5vw;
             text-align: center;
             z-index: 50;
             cursor: pointer;
-            padding: 0.5vh 0;
-            box-shadow: 0 0 10px #00ffff;
+            padding: 0.4vh 0;
+            box-shadow: 0 0 8px #00ffff;
             transition: transform 0.2s;
         }
         #PauseButton:hover {
@@ -196,22 +251,22 @@
             position: absolute;
             top: 40%;
             left: -5%;
-            width: 20vw;
-            height: 20vh;
-            max-width: 250px;
-            max-height: 250px;
+            width: 10vw;
+            height: 10vh;
+            max-width: 125px;
+            max-height: 125px;
             background-image: url('main/chaser.JPG');
             background-size: cover;
             z-index: 100;
-            filter: drop-shadow(0 0 10px #ff00ff);
+            filter: drop-shadow(0 0 8px #ff00ff);
         }
 
         .Kolkar {
             position: absolute;
-            width: 20vw;
-            height: 17.5vh;
-            max-width: 250px;
-            max-height: 218px;
+            width: 10vw;
+            height: 8.75vh;
+            max-width: 125px;
+            max-height: 109px;
             background-image: url('main/kolkar.png');
             background-size: cover;
             left: 100%;
@@ -223,6 +278,19 @@
     </style>
 </head>
 <body>
+    <div id="StartScreen">
+        <button id="StartButton">Start Game</button>
+        <button id="TutorialButton">Tutorial</button>
+    </div>
+    <div id="Tutorial">
+        Click to jump<br>
+        Space to reset<br>
+        P to pause<br>
+        Collect coins to heal<br>
+        Dodge frost bolts and walls<br>
+        Survive as long as you can!<br>
+        (Click anywhere to close)
+    </div>
     <div id="ManaBarContainer"><div id="ManaBar"></div></div>
     <div id="Header">Made By TheMizeGuy</div>
     <div id="Canvas">
@@ -240,7 +308,6 @@
     <script src="main/jquery.min.js"></script>
     <script>
         $(function() {
-            // Core game variables
             const canvasObject = $('#Canvas');
             let gameLoopIntervalID = 0;
             let Paused = true;
@@ -253,14 +320,15 @@
             let currentMana = maxMana;
             let stunned = false;
             let stunDuration = 0;
+            let frostBoltCounter = 0;
 
             // Audio setup
             const coinSound = new Audio('main/coin.mp3'); coinSound.volume = 0.1;
             const lightningSound = new Audio('main/lightning.mp3'); lightningSound.volume = 0.3;
             const hitSound = new Audio('main/hit.mp3'); hitSound.volume = 0.4;
             const deathSound = new Audio('main/death.mp3'); deathSound.volume = 0.7;
-            const jammerSound = new Audio('main/jammer.mp3'); 
-            jammerSound.loop = true;
+            const jammerSound = new Audio('main/jammer.mp3'); jammerSound.loop = true;
+            const ohSound = new Audio('main/oh.mp3'); ohSound.volume = 0.2;
             let jammerFadeInterval = null;
 
             // Player object
@@ -285,7 +353,7 @@
                 },
                 jump() {
                     if (Paused || stunned) return;
-                    this.gravVeloc = -8;
+                    this.gravVeloc = -4; // Reduced jump height
                 },
                 move() {
                     if (!stunned && !Paused) {
@@ -296,6 +364,19 @@
                 getTopPercent() { return parseFloat(this.selectorObject.css('top')) / $(window).height() * 100; },
                 getLeftPercent() { return parseFloat(this.selectorObject.css('left')) / $(window).width() * 100; }
             };
+
+            // Start screen handlers
+            $('#StartButton').on('click', () => {
+                $('#StartScreen').hide();
+                canvasObject.show();
+                startGame();
+            });
+            $('#TutorialButton').on('click', () => $('#Tutorial').show());
+            $(document).on('click', e => {
+                if ($(e.target).closest('#Tutorial').length && !$(e.target).is('#TutorialButton')) {
+                    $('#Tutorial').hide();
+                }
+            });
 
             // Game state management
             function startGame() {
@@ -337,6 +418,7 @@
                 CurrentScore = 0;
                 gameLoopCounter = 0;
                 baseChaseSpeed = 0.2;
+                frostBoltCounter = 0;
                 $('#Chaser').css({ left: '-5%', top: '40%' });
                 Birdy.reset();
                 $('#LostScoreScreen').fadeOut(300);
@@ -351,7 +433,7 @@
             function startJammerFade() {
                 jammerSound.volume = 0;
                 jammerSound.play();
-                const fadeDuration = 20000; // 20 seconds
+                const fadeDuration = 20000;
                 const maxVolume = 0.2;
                 const steps = 100;
                 const stepTime = fadeDuration / steps;
@@ -381,21 +463,24 @@
 
             function addLightningBolt() {
                 const chaserTop = parseFloat($('#Chaser').css('top'));
+                const label = frostBoltCounter % 2 === 0 ? 'R1' : 'OOM';
+                frostBoltCounter++;
                 const bolt = $('<div/>').addClass('LightningBolt')
                     .css({
                         left: $('#Chaser').offset().left + $('#Chaser').width(),
-                        top: chaserTop + (Math.random() - 0.5) * 20 + '%'
+                        top: chaserTop + (Math.random() - 0.5) * 30 + '%' // Wider vertical spread
                     })
+                    .append(`<span>${label}</span>`)
                     .appendTo(canvasObject);
-                bolt.animate({ left: Birdy.selectorObject.offset().left }, 500, 'linear', function() { $(this).remove(); });
+                bolt.animate({ left: Birdy.selectorObject.offset().left + (Math.random() - 0.5) * 200 }, 1000, 'linear', function() { $(this).remove(); }); // Slower, more random path
                 lightningSound.currentTime = 0;
                 lightningSound.play();
             }
 
             let nextLightningWallSpawn = 100;
             function addLightningWall() {
-                const gapHeight = 25;
-                const gapTop = Math.random() * (70 - gapHeight) + 10;
+                const gapHeight = 35; // Larger gap
+                const gapTop = Math.random() * (65 - gapHeight) + 10;
                 const wall = $('<div/>').addClass('LightningWall').css('top', '0%').appendTo(canvasObject);
                 wall.data({ gapTop, gapHeight });
                 lightningSound.currentTime = 0;
@@ -442,10 +527,10 @@
                 $('#CurrentScore').text(CurrentScore);
 
                 if (gameLoopCounter % 50 === 0) addCoin();
-                if (gameLoopCounter % 20 === 0) addLightningBolt();
+                if (gameLoopCounter % 15 === 0) addLightningBolt(); // More frequent frost bolts
                 if (gameLoopCounter >= nextLightningWallSpawn) {
                     addLightningWall();
-                    nextLightningWallSpawn = gameLoopCounter + 80 + Math.random() * 40;
+                    nextLightningWallSpawn = gameLoopCounter + 120 + Math.random() * 60; // Less frequent walls
                 }
                 if (gameLoopCounter >= nextKolkarSpawn) {
                     addKolkar();
@@ -453,7 +538,7 @@
                 }
 
                 checkCollisions();
-                currentMana -= 0.1;
+                currentMana -= 0.08; // Slightly slower mana drain
                 updateManaBar();
                 gameLoopCounter++;
             }
@@ -476,6 +561,8 @@
                         stunDuration = 20;
                         Birdy.selectorObject.addClass('stunned');
                         hitSound.play();
+                        ohSound.currentTime = 0;
+                        ohSound.play();
                         $(this).remove();
                     }
                 });
@@ -490,6 +577,8 @@
                             stunDuration = 30;
                             Birdy.selectorObject.addClass('stunned');
                             hitSound.play();
+                            ohSound.currentTime = 0;
+                            ohSound.play();
                         }
                     }
                 });
@@ -501,6 +590,8 @@
                         stunDuration = 40;
                         Birdy.selectorObject.addClass('stunned');
                         hitSound.play();
+                        ohSound.currentTime = 0;
+                        ohSound.play();
                         $(this).remove();
                     }
                 });
@@ -539,7 +630,9 @@
             });
 
             $(document).on('keydown', e => {
-                if (e.which === 32) resetGame();
+                if (e.which === 32) {
+                    if (Lost) resetGame();
+                }
                 if (e.which === 80) togglePause();
             });
 
@@ -550,9 +643,6 @@
             });
 
             $('#ResetButton').on('click', resetGame);
-
-            // Initialize game
-            startGame();
         });
     </script>
 </body>
