@@ -107,6 +107,28 @@
             text-shadow: 0 0 5px gold;
             z-index: 200;
         }
+        .game-object {
+            position: absolute;
+            font-size: 16px;
+            text-align: center;
+            user-select: none;
+        }
+        .player-text { color: #00ffff; font-weight: bold; }
+        .chaser-text { color: #ff00ff; font-weight: bold; border: 2px solid #ff00ff; }
+        .coin-text { color: gold; text-shadow: 0 0 5px gold; }
+        .frostbolt-text { color: #00b7eb; font-weight: bold; text-decoration: underline; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; }
+        .obstacle-text { color: #888888; font-weight: bold; }
+        .background-text {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            color: #666666;
+            font-size: 12px;
+            opacity: 0.5;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
@@ -140,36 +162,20 @@
     <script>
         console.log('Script starting...');
 
-        // Ensure DOM is ready and assets are loaded
+        // Ensure DOM is ready
         document.addEventListener('DOMContentLoaded', () => {
-            const loader = PIXI.Loader.shared;
-            loader.add('background', '/main/brill.png')
-                  .add('player', '/main/player.avif')
-                  .add('chaser', '/main/chaser.JPG')
-                  .add('coin', '/main/boostlogo.png')
-                  .add('obstacle', '/main/kolkar.png')
-                  .add('frostbolt', '/main/frostbolt.png')
-                  .load((loader, resources) => {
-                      console.log('Assets loaded:', Object.keys(resources));
-                      initGame(resources);
-                  });
-            loader.onError.add((error) => {
-                console.error('Asset loading error:', error);
-                // Fallback if assets fail
-                initGame({}); // Proceed with fallbacks
-            });
-
             // Button Event Handlers (Immediate)
             const startButton = document.getElementById('startButton');
             const tutorialButton = document.getElementById('tutorialButton');
             const restartButton = document.getElementById('restartButton');
             const startScreen = document.getElementById('startScreen');
             const tutorial = document.getElementById('tutorial');
+            const gameContainer = document.getElementById('gameContainer');
 
             startButton.addEventListener('click', () => {
                 console.log('Start button clicked');
                 startScreen.style.display = 'none';
-                document.getElementById('gameContainer').style.display = 'block';
+                gameContainer.style.display = 'block';
                 startGame();
             });
 
@@ -185,13 +191,13 @@
                 }
             });
 
-            // Audio Setup with Howler.js
+            // Audio Setup with Howler.js (Fallback if audio files missing)
             const sounds = {
-                coin: new Howl({ src: ['/main/coin.mp3'], volume: 0.1 }),
-                bolt: new Howl({ src: ['/main/lightning.mp3'], volume: 0.3 }),
-                hit: new Howl({ src: ['/main/hit.mp3'], volume: 0.4 }),
-                death: new Howl({ src: ['/main/death.mp3'], volume: 0.7 }),
-                bgm: new Howl({ src: ['/main/jammer.mp3'], loop: true, volume: 0 })
+                coin: new Howl({ src: ['/main/coin.mp3'], volume: 0.1, onloaderror: () => console.log('Coin sound failed, using silent fallback') }),
+                bolt: new Howl({ src: ['/main/lightning.mp3'], volume: 0.3, onloaderror: () => console.log('Bolt sound failed, using silent fallback') }),
+                hit: new Howl({ src: ['/main/hit.mp3'], volume: 0.4, onloaderror: () => console.log('Hit sound failed, using silent fallback') }),
+                death: new Howl({ src: ['/main/death.mp3'], volume: 0.7, onloaderror: () => console.log('Death sound failed, using silent fallback') }),
+                bgm: new Howl({ src: ['/main/jammer.mp3'], loop: true, volume: 0, onloaderror: () => console.log('BGM failed, using silent fallback') })
             };
 
             // Game Variables
@@ -210,154 +216,129 @@
             const playerSpeed = 0.2;
             let permanentSpeedIncrease = 0;
 
-            let app, player, chaser, background, coins = [], frostBolts = [], obstacles = [];
+            let app, playerText, chaserText, backgroundText, coins = [], frostBolts = [], obstacles = [];
 
-            function initGame(resources) {
-                console.log('Initializing game...');
-                app = new PIXI.Application({
-                    width: window.innerWidth,
-                    height: window.innerHeight,
-                    backgroundColor: 0x1a1a2e,
-                    resolution: window.devicePixelRatio || 1,
-                    autoDensity: true
+            // Initialize PixiJS Application (for canvas-based text rendering)
+            const app = new PIXI.Application({
+                width: window.innerWidth,
+                height: window.innerHeight,
+                backgroundColor: 0x1a1a2e,
+                resolution: window.devicePixelRatio || 1,
+                autoDensity: true
+            });
+            document.getElementById('gameContainer').appendChild(app.view);
+            console.log('PixiJS canvas added');
+
+            // Create CSS-based placeholders for game objects
+            function createBackgroundText() {
+                backgroundText = document.createElement('div');
+                backgroundText.className = 'background-text';
+                backgroundText.textContent = 'Background (Brill)';
+                gameContainer.appendChild(backgroundText);
+            }
+
+            function createPlayerText() {
+                playerText = new PIXI.Text('Player', {
+                    fontFamily: 'Arial',
+                    fontSize: 16,
+                    fill: '#00ffff',
+                    fontWeight: 'bold'
                 });
-                document.getElementById('gameContainer').appendChild(app.view);
-                console.log('PixiJS canvas added');
+                playerText.anchor.set(0.5);
+                playerText.x = app.screen.width / 2;
+                playerText.y = app.screen.height / 2;
+                app.stage.addChild(playerText);
+            }
 
-                // Create Game Objects with Fallbacks
-                createBackground(resources['background']?.texture || PIXI.Texture.WHITE);
-                createPlayer(resources['player']?.texture || PIXI.Texture.WHITE);
-                createChaser(resources['chaser']?.texture || PIXI.Texture.WHITE);
-                app.ticker.maxFPS = 60;
-                app.ticker.add(updateGame);
-                console.log('Game objects initialized');
-
-                restartButton.addEventListener('click', () => {
-                    console.log('Restart button clicked');
-                    restartGame();
+            function createChaserText() {
+                chaserText = new PIXI.Text('Chaser', {
+                    fontFamily: 'Arial',
+                    fontSize: 16,
+                    fill: '#ff00ff',
+                    fontWeight: 'bold'
                 });
+                chaserText.anchor.set(0.5);
+                chaserText.x = app.screen.width * 0.1;
+                chaserText.y = app.screen.height / 2;
+                app.stage.addChild(chaserText);
             }
 
-            function createBackground(texture) {
-                background = new PIXI.TilingSprite(
-                    texture,
-                    app.screen.width * 2,
-                    app.screen.height
-                );
-                background.tileScale.set(0.5);
-                background.tint = texture.baseTexture ? 0xffffff : 0x1a1a2e;
-                app.stage.addChild(background);
-                console.log('Background created');
+            function spawnCoinText() {
+                const coinText = new PIXI.Text('Coin', {
+                    fontFamily: 'Arial',
+                    fontSize: 16,
+                    fill: 'gold',
+                    textShadow: '0 0 5px gold'
+                });
+                coinText.anchor.set(0.5);
+                coinText.x = app.screen.width + 50;
+                coinText.y = Math.random() * (app.screen.height - 100) + 50;
+                coinText.vx = -5;
+                app.stage.addChild(coinText);
+                coins.push(coinText);
             }
 
-            function createPlayer(texture) {
-                player = new PIXI.Sprite(texture);
-                player.tint = texture.baseTexture ? 0xffffff : 0x00ffff;
-                player.anchor.set(0.5);
-                player.width = app.screen.width * 0.08;
-                player.height = app.screen.height * 0.045;
-                player.x = app.screen.width / 2;
-                player.y = app.screen.height / 2;
-                app.stage.addChild(player);
-                console.log('Player created');
-            }
-
-            function createChaser(texture) {
-                chaser = new PIXI.Sprite(texture);
-                chaser.tint = texture.baseTexture ? 0xffffff : 0xff00ff;
-                chaser.anchor.set(0.5);
-                chaser.width = app.screen.width * 0.15;
-                chaser.height = app.screen.height * 0.15;
-                chaser.x = app.screen.width * 0.1;
-                chaser.y = app.screen.height / 2;
-                app.stage.addChild(chaser);
-                console.log('Chaser created');
-            }
-
-            function spawnCoin() {
-                const coin = new PIXI.Sprite(loader.resources['coin']?.texture || PIXI.Texture.WHITE);
-                coin.tint = coin.texture.baseTexture ? 0xffffff : 0xffff00;
-                coin.anchor.set(0.5);
-                coin.width = app.screen.width * 0.04;
-                coin.height = app.screen.height * 0.03;
-                coin.x = app.screen.width + 50;
-                coin.y = Math.random() * (app.screen.height - 100) + 50;
-                coin.vx = -5;
-                app.stage.addChild(coin);
-                coins.push(coin);
-                console.log('Coin spawned');
-            }
-
-            function spawnFrostBolt() {
-                const bolt = new PIXI.Container();
-                const sprite = new PIXI.Sprite(loader.resources['frostbolt']?.texture || PIXI.Texture.WHITE);
-                sprite.tint = sprite.texture.baseTexture ? 0x00b7eb : 0x00b7eb; // Cyan gradient fallback
-                sprite.anchor.set(0.5);
-                sprite.width = app.screen.width * 0.02;
-                sprite.height = app.screen.height * 0.1;
-                bolt.addChild(sprite);
-
-                const text = new PIXI.Text(frostBolts.length % 2 === 0 ? 'R1' : 'OOM', {
+            function spawnFrostBoltText() {
+                const boltText = new PIXI.Text(frostBolts.length % 2 === 0 ? 'R1' : 'OOM', {
                     fontFamily: 'Arial',
                     fontSize: 24,
-                    fill: '#ffffff',
+                    fill: '#00b7eb',
+                    fontWeight: 'bold',
+                    textDecoration: 'underline',
                     stroke: '#000000',
-                    strokeThickness: 4,
-                    align: 'center'
+                    strokeThickness: 4
                 });
-                text.anchor.set(0.5);
-                text.y = -sprite.height / 2 - 10;
-                bolt.addChild(text);
-
-                bolt.x = chaser.x + chaser.width / 2;
-                bolt.y = chaser.y + (Math.random() - 0.5) * 100;
-                bolt.vx = 2;
-                app.stage.addChild(bolt);
-                frostBolts.push(bolt);
+                boltText.anchor.set(0.5);
+                boltText.x = chaserText.x + (chaserText.width / 2 || 0);
+                boltText.y = chaserText.y + (Math.random() - 0.5) * 100;
+                boltText.vx = 2;
+                app.stage.addChild(boltText);
+                frostBolts.push(boltText);
                 sounds.bolt.play();
-                console.log('Frost bolt spawned');
             }
 
-            function spawnObstacle() {
-                const obstacle = new PIXI.Sprite(loader.resources['obstacle']?.texture || PIXI.Texture.WHITE);
-                obstacle.tint = obstacle.texture.baseTexture ? 0xffffff : 0x888888;
-                obstacle.anchor.set(0.5);
-                obstacle.width = app.screen.width * 0.1;
-                obstacle.height = app.screen.height * 0.0875;
-                obstacle.x = app.screen.width + 50;
-                obstacle.y = Math.random() * (app.screen.height - 100) + 50;
-                obstacle.vx = -4;
-                app.stage.addChild(obstacle);
-                obstacles.push(obstacle);
-                console.log('Obstacle spawned');
+            function spawnObstacleText() {
+                const obstacleText = new PIXI.Text('Obstacle', {
+                    fontFamily: 'Arial',
+                    fontSize: 16,
+                    fill: '#888888',
+                    fontWeight: 'bold'
+                });
+                obstacleText.anchor.set(0.5);
+                obstacleText.x = app.screen.width + 50;
+                obstacleText.y = Math.random() * (app.screen.height - 100) + 50;
+                obstacleText.vx = -4;
+                app.stage.addChild(obstacleText);
+                obstacles.push(obstacleText);
             }
 
             function updateGame(delta) {
                 console.log('Updating game, delta:', delta);
                 if (gameState !== 'playing') return;
 
-                background.tilePosition.x -= 2 * delta;
+                // Simulate background scroll with text
+                if (backgroundText) backgroundText.style.transform = `translateX(${-2 * delta}px)`;
 
                 if (!stunned) {
-                    player.y += player.vy || 0;
-                    player.vy = (player.vy || 0) + 0.35 * delta;
-                    player.y = Math.max(player.height / 2, Math.min(app.screen.height - player.height / 2, player.y));
+                    playerText.y += playerText.vy || 0;
+                    playerText.vy = (playerText.vy || 0) + 0.35 * delta;
+                    playerText.y = Math.max(16, Math.min(app.screen.height - 16, playerText.y));
                 }
 
                 const playerLeft = app.screen.width / 2;
-                const chaseLeft = chaser.x;
+                const chaseLeft = chaserText.x;
                 const distance = playerLeft - chaseLeft;
                 const distanceFactor = Math.max(0, distance / (app.screen.width * 0.4));
                 let speedReduction = coinStacks >= 4 ? playerSpeed * (coinStacks === 4 ? 1 : 1.2) : 0;
                 let chaseSpeed = Math.max(minChaseSpeed, (baseChaseSpeed + permanentSpeedIncrease - speedReduction) * (0.5 + 0.5 * distanceFactor));
                 if (stunned) chaseSpeed *= 2;
-                chaser.x += chaseSpeed * delta;
-                chaser.y += (player.y - chaser.y) * 0.05 * delta;
-                if (chaser.x >= playerLeft - player.width / 2) endGame();
+                chaserText.x += chaseSpeed * delta;
+                chaserText.y += (playerText.y - chaserText.y) * 0.05 * delta;
+                if (chaserText.x >= playerLeft - 16) endGame();
 
                 coins.forEach((coin, index) => {
                     coin.x += coin.vx * delta;
-                    if (checkCollision(coin, player)) {
+                    if (checkCollision(coin, playerText)) {
                         coins.splice(index, 1);
                         app.stage.removeChild(coin);
                         mana = Math.min(maxMana, mana + 20);
@@ -365,7 +346,7 @@
                         coinStacks = Math.min(5, coinStackTimers.length);
                         sounds.coin.play();
                         updateUI();
-                    } else if (coin.x < -coin.width) {
+                    } else if (coin.x < -16) {
                         coins.splice(index, 1);
                         app.stage.removeChild(coin);
                     }
@@ -373,7 +354,7 @@
 
                 frostBolts.forEach((bolt, index) => {
                     bolt.x += bolt.vx * delta;
-                    if (checkCollision(bolt, player)) {
+                    if (checkCollision(bolt, playerText)) {
                         frostBolts.splice(index, 1);
                         app.stage.removeChild(bolt);
                         mana -= 5;
@@ -387,13 +368,13 @@
 
                 obstacles.forEach((obstacle, index) => {
                     obstacle.x += obstacle.vx * delta;
-                    if (checkCollision(obstacle, player)) {
+                    if (checkCollision(obstacle, playerText)) {
                         obstacles.splice(index, 1);
                         app.stage.removeChild(obstacle);
                         mana -= 34;
                         sounds.hit.play();
                         sounds.oh.play();
-                    } else if (obstacle.x < -obstacle.width) {
+                    } else if (obstacle.x < -16) {
                         obstacles.splice(index, 1);
                         app.stage.removeChild(obstacle);
                     }
@@ -424,8 +405,18 @@
             }
 
             function checkCollision(obj1, obj2) {
-                const bounds1 = obj1.getBounds();
-                const bounds2 = obj2.getBounds();
+                const bounds1 = obj1.getBounds ? obj1.getBounds() : {
+                    x: obj1.x - (obj1.width / 2 || 16),
+                    y: obj1.y - (obj1.height / 2 || 16),
+                    width: obj1.width || 32,
+                    height: obj1.height || 32
+                };
+                const bounds2 = obj2.getBounds ? obj2.getBounds() : {
+                    x: obj2.x - (obj2.width / 2 || 16),
+                    y: obj2.y - (obj2.height / 2 || 16),
+                    width: obj2.width || 32,
+                    height: obj2.height || 32
+                };
                 return bounds1.x < bounds2.x + bounds2.width &&
                        bounds1.x + bounds1.width > bounds2.x &&
                        bounds1.y < bounds2.y + bounds2.height &&
@@ -445,7 +436,7 @@
                 document.addEventListener('mousedown', (e) => {
                     if (gameState === 'playing' && !stunned && e.target.tagName !== 'BUTTON') {
                         console.log('Jump triggered');
-                        player.vy = -8;
+                        playerText.vy = -8;
                     }
                 });
 
@@ -466,13 +457,17 @@
                 gameState = 'playing';
                 sounds.bgm.play();
                 sounds.bgm.fade(0, 0.2, 20000);
-                spawnCoin();
-                spawnFrostBolt();
-                spawnObstacle();
-                setInterval(spawnCoin, 2000);
-                setInterval(spawnFrostBolt, 1000);
-                setInterval(spawnObstacle, 3000);
+                createPlayerText();
+                createChaserText();
+                createBackgroundText();
+                spawnCoinText();
+                spawnFrostBoltText();
+                spawnObstacleText();
+                setInterval(spawnCoinText, 2000);
+                setInterval(spawnFrostBoltText, 1000);
+                setInterval(spawnObstacleText, 3000);
                 initializeInputs();
+                app.ticker.start(); // Explicitly start ticker
                 console.log('Game inputs initialized');
             }
 
@@ -488,6 +483,12 @@
                 document.getElementById('bestScore').textContent = Math.floor(bestScore);
                 sounds.death.play();
                 sounds.bgm.stop();
+                if (playerText) app.stage.removeChild(playerText);
+                if (chaserText) app.stage.removeChild(chaserText);
+                if (backgroundText) gameContainer.removeChild(backgroundText);
+                coins.forEach(c => app.stage.removeChild(c));
+                frostBolts.forEach(b => app.stage.removeChild(b));
+                obstacles.forEach(o => app.stage.removeChild(o));
             }
 
             function restartGame() {
@@ -508,9 +509,9 @@
                 coinStackTimers = [];
                 baseChaseSpeed = 0.12;
                 permanentSpeedIncrease = 0;
-                chaser.x = app.screen.width * 0.1;
-                chaser.y = app.screen.height / 2;
-                player.y = app.screen.height / 2;
+                chaserText.x = app.screen.width * 0.1;
+                chaserText.y = app.screen.height / 2;
+                playerText.y = app.screen.height / 2;
                 gameState = 'playing';
                 sounds.bgm.play();
                 sounds.bgm.fade(0, 0.2, 20000);
